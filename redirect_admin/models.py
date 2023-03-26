@@ -25,12 +25,45 @@ class TlgUser(models.Model):
         verbose_name_plural = 'пользователи TG'
 
 
+class LinkSet(models.Model):
+    """
+    Таблицы для наборов ссылок. Нужна, чтобы сгруппировать ссылки.
+    """
+    tlg_id = models.ForeignKey(verbose_name='Автор', to=TlgUser, on_delete=models.CASCADE)
+    title = models.CharField(verbose_name='Название набора', max_length=200)
+    created_at = models.DateTimeField(verbose_name='Дата и время создания', auto_now_add=True)
+
+    def __str__(self):
+        return f'Набор ссылок: {self.title}'
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'Набор ссылок'
+        verbose_name_plural = 'Наборы ссылок'
+
+
 class Links(models.Model):
     """
     Таблица со ссылками TLG юзеров.
     """
-    tlg_user = models.ForeignKey(verbose_name='Автор', to=TlgUser, on_delete=models.CASCADE)
+    SHORT_LINKS_SRVCS = (
+        ('cutt.ly', 'cutt.ly'),
+        ('cutt.us', 'cutt.us'),
+        ('clck.ru', 'clck.ru'),
+        ('kortlink.dk', 'kortlink.dk'),
+        ('gg.gg', 'gg.gg'),
+        ('t9y.me', 't9y.me'),
+    )
+
+    tlg_id = models.ForeignKey(verbose_name='Автор', to=TlgUser, on_delete=models.CASCADE)
+    link_set = models.ForeignKey(verbose_name='Набор ссылок', to=LinkSet, on_delete=models.CASCADE)
     link = models.URLField(verbose_name='Ссылка', max_length=1000)
+    redirect_numb = models.IntegerField(verbose_name='Кол-во редиректов')
+    company_id = models.CharField(verbose_name='ID компании(keitaro)', max_length=150, blank=True, null=True)
+    redirect_links = models.TextField(verbose_name='Редирект ссылки', max_length=5000, blank=True, null=True)
+    short_link_service = models.CharField(verbose_name='Сервис сокращения ссылок', choices=SHORT_LINKS_SRVCS,
+                                          max_length=11, blank=True, null=True)
+    short_links = models.TextField(verbose_name='Сокращённые ссылки', max_length=5000, blank=True, null=True)
     created_at = models.DateTimeField(verbose_name='Дата создания', auto_now_add=True)
 
     def __str__(self):

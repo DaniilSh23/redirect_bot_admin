@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from redirect_admin.models import TlgUser, RedirectBotSettings, Links
+from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet
 
 
 @admin.register(TlgUser)
@@ -53,13 +53,54 @@ class LinksAdmin(admin.ModelAdmin):
     Регистрация в админке модели для настроек Links.
     """
     list_display = (
-        'tlg_user',
+        'tlg_id',
         'link',
+        'redirect_numb',
+        'company_id',
         'created_at',
     )
     list_display_links = (
-        'tlg_user',
+        'tlg_id',
         'link',
+        'redirect_numb',
+        'company_id',
+        'created_at',
+
+    )
+    fieldsets = [
+        ('Основная информация', {
+            'fields': ('tlg_id', 'link_set', 'link', 'redirect_numb'),
+            'classes': ('wide', 'extrapretty'),
+            'description': 'Основная информация о ссылке. Это то, что даёт нам на вход юзер.'
+        }),
+        ('Обработка KEITARO', {
+            'fields': ('company_id', 'redirect_links'),
+            'classes': ('wide', 'extrapretty'),
+            'description': 'Информация, которую получаем после обработки KEITARO. '
+                           'В поле "Редирект ссылки" ссылки должны быть указаны через пробел'
+        }),
+        ('Сервисы сокращения', {
+            'fields': ('short_link_service', 'short_links'),
+            'classes': ('wide', 'extrapretty'),
+            'description': 'Информация, которую получаем после обработки сервисом сокращения ссылок. '
+                           'В поле "Сокращённые ссылки" ссылки должны быть указаны через пробел'
+        })
+    ]
+
+
+@admin.register(LinkSet)
+class LinkSetAdmin(admin.ModelAdmin):
+    """
+    Регистрация в админке модели LinkSet
+    """
+    list_display = (
+        'tlg_id',
+        'title',
+        'created_at',
+    )
+    list_display_links = (
+        'tlg_id',
+        'title',
         'created_at',
     )
 

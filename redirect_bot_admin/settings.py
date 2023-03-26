@@ -109,7 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -125,3 +125,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Celery settings
+CELERY_BROKER_URL = "redis://localhost:6379"  # Это адрес брокера сообщений (у нас Redis)
+CELERY_RESULT_BACKEND = "redis://localhost:6379"  # Это адрес бэкэнда результатов (тоже у нас Redis)
+CELERY_TIMEZONE = "Europe/Moscow"
