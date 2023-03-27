@@ -60,10 +60,10 @@ class Links(models.Model):
     link = models.URLField(verbose_name='Ссылка', max_length=1000)
     redirect_numb = models.IntegerField(verbose_name='Кол-во редиректов')
     company_id = models.CharField(verbose_name='ID компании(keitaro)', max_length=150, blank=True, null=True)
-    redirect_links = models.TextField(verbose_name='Редирект ссылки', max_length=5000, blank=True, null=True)
+    redirect_links = models.TextField(verbose_name='Редирект ссылки', max_length=25000, blank=True, null=True)
     short_link_service = models.CharField(verbose_name='Сервис сокращения ссылок', choices=SHORT_LINKS_SRVCS,
                                           max_length=11, blank=True, null=True)
-    short_links = models.TextField(verbose_name='Сокращённые ссылки', max_length=5000, blank=True, null=True)
+    short_links = models.TextField(verbose_name='Сокращённые ссылки', max_length=25000, blank=True, null=True)
     created_at = models.DateTimeField(verbose_name='Дата создания', auto_now_add=True)
 
     def __str__(self):

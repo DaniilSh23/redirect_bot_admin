@@ -32,6 +32,7 @@ class LinksSerializer(serializers.Serializer):
     link = serializers.URLField(max_length=1000)
     link_set_id = serializers.IntegerField()
     redirect_numb = serializers.IntegerField()
+    short_link_service = serializers.CharField(max_length=11)
 
 
 class LinkSetSerializer(serializers.Serializer):

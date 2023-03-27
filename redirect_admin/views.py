@@ -97,6 +97,7 @@ class LinksView(APIView):
                         'link': i_link.get('link'),
                         'link_set': link_set_obj,
                         'redirect_numb': i_link.get('redirect_numb'),
+                        'short_link_service': i_link.get('short_link_service'),
                     }
                 )
                 logger.success(f'REDIRECT_BOT | Ссылка {i_link.get("link")}'
