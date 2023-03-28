@@ -1,8 +1,6 @@
-from abc import ABC
-
 from rest_framework import serializers
 
-from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet
+from redirect_admin.models import TlgUser, RedirectBotSettings, Payments
 
 
 class TlgUserSerializer(serializers.ModelSerializer):
@@ -42,3 +40,25 @@ class LinkSetSerializer(serializers.Serializer):
     id = serializers.IntegerField(allow_null=True)
     tlg_id = serializers.CharField(max_length=25)
     title = serializers.CharField(max_length=200)
+
+
+class PaymentsSerializer(serializers.Serializer):
+    """
+    Сериалайзер для модели Payments
+    """
+    tlg_id = serializers.CharField(max_length=25)
+    pay_system_type = serializers.CharField(max_length=7)
+    amount = serializers.CharField(max_length=15)
+    bill_id = serializers.CharField(max_length=350)
+    bill_status = serializers.BooleanField(default=False)
+    bill_expire_at = serializers.DateTimeField()
+    bill_url = serializers.URLField(max_length=500)
+
+
+class PaymentsModelSerializer(serializers.ModelSerializer):
+    """
+    Сериалайзер для модели Payments (нужен, когда отдаём запись по GET запросу)
+    """
+    class Meta:
+        model = Payments
+        fields = '__all__'

@@ -1,6 +1,19 @@
 from django.db import models
 
 
+class RedirectBotSettings(models.Model):
+    """
+    Настройки для Redirect Bot.
+    """
+    key = models.CharField(verbose_name='Ключ', max_length=230)
+    value = models.TextField(verbose_name='Значение', max_length=500)
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'настройка Redirect Bot'
+        verbose_name_plural = 'настройки Redirect Bot'
+
+
 class TlgUser(models.Model):
     """
     Модель пользователя телеграм.
@@ -75,14 +88,29 @@ class Links(models.Model):
         verbose_name_plural = 'Ссылки'
 
 
-class RedirectBotSettings(models.Model):
+class Payments(models.Model):
     """
-    Настройки для Redirect Bot.
+    Модель для платежей.
     """
-    key = models.CharField(verbose_name='Ключ', max_length=230)
-    value = models.TextField(verbose_name='Значение', max_length=500)
+    PAY_SYSTEMS_LST = (
+        ('qiwi', 'QIWI'),
+        ('crystal', 'Crystal Pay'),
+        ('to_card', 'Перевод на карту'),
+    )
+    tlg_id = models.ForeignKey(verbose_name='Чей платёж', to=TlgUser, on_delete=models.CASCADE)
+    pay_system_type = models.CharField(verbose_name='Платёжная сис-ма', choices=PAY_SYSTEMS_LST, max_length=7)
+    amount = models.DecimalField(verbose_name='Сумма платежа(руб.)', max_digits=10, decimal_places=2)
+    bill_id = models.CharField(verbose_name='ID счёта на оплату', max_length=350)
+    bill_url = models.URLField(verbose_name='Ссылка счёта', max_length=500)
+    bill_status = models.BooleanField(verbose_name='Счёт оплачен', default=False)
+    bill_expire_at = models.DateTimeField(verbose_name='Дата истекания счёта на оплату')
+    created_at = models.DateTimeField(verbose_name='Дата создания', auto_now_add=True)
+    archived = models.BooleanField(verbose_name='В архиве', default=False)
+
+    def __str__(self):
+        return f'Счёт: {self.bill_id}'
 
     class Meta:
         ordering = ['-id']
-        verbose_name = 'настройка Redirect Bot'
-        verbose_name_plural = 'настройки Redirect Bot'
+        verbose_name = 'Счёт'
+        verbose_name_plural = 'Счета'

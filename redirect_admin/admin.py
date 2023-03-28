@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet
+from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet, Payments
 
 
 @admin.register(TlgUser)
@@ -112,3 +112,43 @@ class RedirectBotSettingsAdmin(admin.ModelAdmin):
     """
     list_display = ('key', 'value')
     list_display_links = ('key', 'value')
+
+
+@admin.register(Payments)
+class PaymentsAdmin(admin.ModelAdmin):
+    """
+    Регистрация в админке модели Payments.
+    """
+    list_display = (
+        'tlg_id',
+        'pay_system_type',
+        'amount',
+        'bill_expire_at',
+        'bill_status',
+        'created_at',
+        'archived',
+    )
+    list_display_links = (
+        'tlg_id',
+        'pay_system_type',
+        'amount',
+        'bill_expire_at',
+        'bill_status',
+        'created_at',
+        'archived',
+    )
+    search_fields = (
+        'tlg_id',
+        'pay_system_type',
+        'amount',
+        'bill_expire_at',
+        'bill_status',
+        'created_at',
+    )
+    search_help_text = 'Поиск по всем полям таблицы'
+    list_filter = (
+        'tlg_id',
+        'pay_system_type',
+        'bill_status',
+        'archived',
+    )
