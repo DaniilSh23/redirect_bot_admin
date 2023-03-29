@@ -103,7 +103,7 @@ class Payments(models.Model):
     bill_id = models.CharField(verbose_name='ID счёта на оплату', max_length=350)
     bill_url = models.URLField(verbose_name='Ссылка счёта', max_length=500)
     bill_status = models.BooleanField(verbose_name='Счёт оплачен', default=False)
-    bill_expire_at = models.DateTimeField(verbose_name='Дата истекания счёта на оплату')
+    bill_expire_at = models.DateTimeField(verbose_name='Дата аннулирования счёта на оплату')
     created_at = models.DateTimeField(verbose_name='Дата создания', auto_now_add=True)
     archived = models.BooleanField(verbose_name='В архиве', default=False)
 
