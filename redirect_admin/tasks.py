@@ -83,30 +83,28 @@ def create_company_in_keitaro(tlg_id, link_id, link):
     """
     Создаём в Кеитаро компанию для каждой оригинальной ссылки.
     """
-    url = "http://185.198.167.20/admin/?object=campaigns.create"
-    querystring = {"object": "campaigns.create"}
+    url = "http://45.9.40.104/admin_api/v1/campaigns"
     payload = {
-        # alias - какое-то сокращённое название, но эта фигня должна быть уникальной
-        "alias": f"REDIRECT_BOT---TlgUserID__{tlg_id}---LinkID__{link_id}",
+        "alias": f"REDIRECT_BOT--TlgUserID__{tlg_id}--LinkID__{link_id}",
         "state": "active",
         "type": "position",
-        "cookies_ttl": 999999,
+        "cookies_ttl": 23,
         "uniqueness_method": "ip_ua",
         "cost_type": "CPC",
         "cost_auto": True,
         "uniqueness_use_cookies": True,
-        "domain_id": 5,
+        "domain_id": 1,
         "cost_currency": "RUB",
         "streams": [
             {
-                "uid": 1679385901928,
                 "type": "forced",
                 "state": "active",
                 "name": "Bot Protection",
                 "schema": "action",
+                "campaign_id": None,
                 "action_type": "campaign",
                 "collect_clicks": True,
-                "action_payload": 19,
+                "action_payload": "2",
                 "filter_or": False,
                 "filters": [
                     {
@@ -119,45 +117,29 @@ def create_company_in_keitaro(tlg_id, link_id, link):
                 "weight": 0
             },
             {
-                "uid": 1679385933495,
-                "name": "Flow 2",
+                "name": "RedirectStream",
                 "position": 2,
                 "weight": 100,
                 "schema": "redirect",
                 "type": "regular",
-                "action_type": "http",
+                "action_type": "js",
                 "state": "active",
-                "campaign_id": None,
                 "collect_clicks": True,
                 "filter_or": False,
                 "filters": [],
                 "triggers": [],
                 "postbacks": [],
-                "action_payload": f"{link}"  # Здесь также ставим ссылку
+                "action_payload": f"{link}"
             }
         ],
-        "group_id": 3,  # 3 - ID группы "Помощь"
+        "group_id": 4,
         "traffic_source_id": None,
         "parameters": {},
-        # И здесь делаем по аналогии с alias
         "name": f"REDIRECT_BOT | USER_TG_ID: {tlg_id} | {link}",
         "bind_visitors": None
     }
-    headers = {
-        "cookie": "keitaro=jaa79fju1sil2umql63d2m6653",
-        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/111.0",
-        "Accept": "application/json, text/plain, */*",
-        "Accept-Encoding": "gzip, deflate",
-        "Content-Type": "application/json;charset=utf-8",
-        "Origin": "http://185.198.167.20",
-        "Connection": "keep-alive",
-        "Referer": "http://185.198.167.20/admin/",
-        "Cookie": "states=v1eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6IjhkMTk0NjRiMTY3ZTZkMjljZTQ5NGFhYWRjNGJm"
-                  "NWZkIiwicGFzc3dvcmQiOiIlMjQyeSUyNDEwJTI0bDZvQmFTaFN6TTl0Lm9ISDBjR1k1LkQybUh6dlR6Ljl5aGVPNSUyRkRtYWl"
-                  "6Mlp4LkxEbTNBeSIsInRpbWVzdGFtcCI6MTY3OTEzNDEzNH0.PCDnkcFsZWg7C5fuGDsswE6ohyr2s1DnYETg"
-                  "17SJp_U; streamsView=true; streamsSharesVisible=false; keitaro=c6mtduund16i8qdj8tt5ef52m1"
-    }
-    response = requests.post(url, json=payload, headers=headers, params=querystring)
+    headers = {"Api-Key": "b8a6a0ce74e6281ade804a1b3fae2fed"}
+    response = requests.post(url, json=payload, headers=headers)
     if response.status_code != 200:
         logger.error(f'НЕУДАЧНЫЙ ЗАПРОС К КЕИТАРО. Ответ хоста: {response.json()}')
         return False
@@ -181,7 +163,7 @@ def link_shortening(service_name, link_to_short):
         short_lnk = response.json().get("url").get('shortLink')
 
     elif service_name == 'cutt.us':
-        response = requests.get(f'https://cutt.us/api.php?url=dyatel.pro')
+        response = requests.get(f'https://cutt.us/api.php?url={link_to_short}')
         short_lnk = response.text
 
     elif service_name == 'clck.ru':
@@ -196,7 +178,7 @@ def link_shortening(service_name, link_to_short):
 
     elif service_name == 'gg.gg':
         url = "https://gg.gg/create"
-        payload = "custom_path=&use_norefs=0&long_url=https://dyatel.pro&app=site&version=0.1"
+        payload = f"custom_path=&use_norefs=0&long_url={link_to_short}&app=site&version=0.1"
         headers = {
             "cookie": "__ddg1_=SLj1qFv2FswCgHiql9PG; ci_session=a%253A5%253A%257Bs%253A10%253A%2522"
                       "session_id%2522%253Bs%253A32%253A%252274f9910433781230c8d921855c451daf%2522%253Bs%"
@@ -217,7 +199,7 @@ def link_shortening(service_name, link_to_short):
 
     elif service_name == 't9y.me':
         url = "https://api.t9y.me/v1/shorten-url"
-        payload = {"url": "https://dyatel.pro"}
+        payload = {"url": f"{link_to_short}"}
         headers = {"Content-Type": "application/json"}
         response = requests.post(url, json=payload, headers=headers)
         short_lnk = response.json().get('data').get('shortUrl')
