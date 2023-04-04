@@ -1,15 +1,16 @@
 from django.contrib import admin
 
+from redirect_admin.admin_mixins import ExportUsernames
 from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet, Payments
 
 
 @admin.register(TlgUser)
-class TlgUserAdmin(admin.ModelAdmin):
+class TlgUserAdmin(admin.ModelAdmin, ExportUsernames):
     """
     Регистрация модели TlgUser в админке.
     """
     actions = [
-        'export_csv_for_dyatel_project',
+        'export_usernames',
     ]
     list_display = (
         "tlg_id",

@@ -85,7 +85,7 @@ def create_company_in_keitaro(tlg_id, link_id, link):
     """
     url = "http://45.9.40.104/admin_api/v1/campaigns"
     payload = {
-        "alias": f"REDIRECT_BOT--TlgUserID__{tlg_id}--LinkID__{link_id}",
+        "alias": f"REDIRECT_BOT-TlgUserID{tlg_id}LinkID{link_id}",
         "state": "active",
         "type": "position",
         "cookies_ttl": 23,
@@ -135,7 +135,7 @@ def create_company_in_keitaro(tlg_id, link_id, link):
         "group_id": 4,
         "traffic_source_id": None,
         "parameters": {},
-        "name": f"REDIRECT_BOT | USER_TG_ID: {tlg_id} | {link}",
+        "name": f"RED_BOT|TG_ID:{tlg_id}|LINK_ID:{link_id}",
         "bind_visitors": None
     }
     headers = {"Api-Key": "b8a6a0ce74e6281ade804a1b3fae2fed"}
