@@ -163,7 +163,10 @@ def link_shortening(service_name, link_to_short):
         short_lnk = response.json().get("url").get('shortLink')
 
     elif service_name == 'cutt.us':
-        response = requests.get(f'https://cutt.us/api.php?url={link_to_short}')
+        # Короче, cutt.us не прожовывает длинные ссылки, поэтому делаем финт ушами и оборачиваем сперва в clck.ru
+        response = requests.get(f'https://clck.ru/--?url={link_to_short}')
+        short_lnk = response.text
+        response = requests.get(f'https://cutt.us/api.php?url={short_lnk}')
         short_lnk = response.text
 
     elif service_name == 'clck.ru':
