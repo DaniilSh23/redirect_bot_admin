@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from redirect_admin.models import TlgUser, RedirectBotSettings, Payments
+from redirect_admin.models import TlgUser, RedirectBotSettings, Payments, Links
 
 
 class TlgUserSerializer(serializers.ModelSerializer):
@@ -31,6 +31,15 @@ class LinksSerializer(serializers.Serializer):
     link_set_id = serializers.IntegerField()
     redirect_numb = serializers.IntegerField()
     short_link_service = serializers.CharField(max_length=11)
+
+
+class LinksModelSerializer(serializers.ModelSerializer):
+    """
+    Сериалайзер для модели Links. Нужен, чтобы без гемора отдавать на GET запрос.
+    """
+    class Meta:
+        model = Links
+        fields = '__all__'
 
 
 class LinkSetSerializer(serializers.Serializer):

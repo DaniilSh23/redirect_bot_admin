@@ -8,7 +8,7 @@ from rest_framework import status
 
 from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet, Payments
 from redirect_admin.serializers import TlgUserSerializer, RedirectBotSettingsSerializer, LinksSerializer, \
-    LinkSetSerializer, PaymentsSerializer, PaymentsModelSerializer
+    LinkSetSerializer, PaymentsSerializer, PaymentsModelSerializer, LinksModelSerializer
 
 
 class TlgUserView(APIView):
@@ -97,6 +97,33 @@ class GetSettingsView(APIView):
         redirect_bot_settings_obj = RedirectBotSettings.objects.filter(key=request.GET.get('key'))
         redirect_bot_settings_serializer = RedirectBotSettingsSerializer(redirect_bot_settings_obj, many=True).data
         return Response(redirect_bot_settings_serializer, status.HTTP_200_OK)
+
+
+class GetLinkOwner(APIView):
+    """
+    Вьюшка для полуения владельца ссылки.
+    """
+
+    def get(self, request, format=None):
+        """
+        Обработка запроса на получение владельца ссылки.
+        Принимаем company_id ссылки и достаём TG ID владельца.
+        Возвращаем TG ID владельца.
+        """
+        logger.info(f'Принят запрос от REDIRECT_BOT на получение ссылки.')
+        if request.query_params.get('company_id').isdigit():   # Проверка, что пришли цифры в запросе
+
+            # Достаём ссылку из БД
+            try:
+                link_object = Links.objects.get(company_id=int(request.query_params.get('company_id')))
+            except Exception:
+                logger.warning(f'Ссылка с company_id == {request.query_params.get("company_id")} не найдена в БД.')
+                return Response({'result': 'Объект ссылки не найден.'}, status.HTTP_404_NOT_FOUND)
+
+            return Response({"link_owner": link_object.tlg_id.tlg_id}, status.HTTP_200_OK)
+        else:
+            logger.warning(f'Получен невалидный ID ссылкии от REDIRECT_BOT.\nЗапрос: {request.data}')
+            return Response({'result': 'Переданные данные не прошли валидацию'}, status.HTTP_400_BAD_REQUEST)
 
 
 class LinksView(APIView):

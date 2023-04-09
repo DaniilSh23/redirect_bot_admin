@@ -13,6 +13,7 @@ class TlgUserAdmin(admin.ModelAdmin, ExportUsernames):
         'export_usernames',
     ]
     list_display = (
+        "id",
         "tlg_id",
         "first_name",
         "username",
@@ -21,6 +22,7 @@ class TlgUserAdmin(admin.ModelAdmin, ExportUsernames):
         "is_fake",
     )
     list_display_links = (
+        "id",
         "tlg_id",
         "first_name",
         "username",
@@ -54,6 +56,7 @@ class LinksAdmin(admin.ModelAdmin):
     Регистрация в админке модели для настроек Links.
     """
     list_display = (
+        "id",
         'tlg_id',
         'link',
         'redirect_numb',
@@ -61,6 +64,7 @@ class LinksAdmin(admin.ModelAdmin):
         'created_at',
     )
     list_display_links = (
+        "id",
         'tlg_id',
         'link',
         'redirect_numb',
@@ -95,11 +99,13 @@ class LinkSetAdmin(admin.ModelAdmin):
     Регистрация в админке модели LinkSet
     """
     list_display = (
+        "id",
         'tlg_id',
         'title',
         'created_at',
     )
     list_display_links = (
+        "id",
         'tlg_id',
         'title',
         'created_at',
@@ -121,6 +127,7 @@ class PaymentsAdmin(admin.ModelAdmin):
     Регистрация в админке модели Payments.
     """
     list_display = (
+        "id",
         'tlg_id',
         'pay_system_type',
         'amount',
@@ -130,6 +137,7 @@ class PaymentsAdmin(admin.ModelAdmin):
         'archived',
     )
     list_display_links = (
+        "id",
         'tlg_id',
         'pay_system_type',
         'amount',
