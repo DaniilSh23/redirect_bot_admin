@@ -66,6 +66,7 @@ class Links(models.Model):
         ('kortlink.dk', 'kortlink.dk'),
         ('gg.gg', 'gg.gg'),
         ('t9y.me', 't9y.me'),
+        ('custom_domain', 'custom_domain'),
     )
 
     tlg_id = models.ForeignKey(verbose_name='Автор', to=TlgUser, on_delete=models.CASCADE)
@@ -75,7 +76,7 @@ class Links(models.Model):
     company_id = models.CharField(verbose_name='ID компании(keitaro)', max_length=150, blank=True, null=True)
     redirect_links = models.TextField(verbose_name='Редирект ссылки', max_length=25000, blank=True, null=True)
     short_link_service = models.CharField(verbose_name='Сервис сокращения ссылок', choices=SHORT_LINKS_SRVCS,
-                                          max_length=11, blank=True, null=True)
+                                          max_length=14, blank=True, null=True)
     short_links = models.TextField(verbose_name='Сокращённые ссылки', max_length=25000, blank=True, null=True)
     created_at = models.DateTimeField(verbose_name='Дата создания', auto_now_add=True)
 

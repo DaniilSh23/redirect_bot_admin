@@ -28,15 +28,15 @@ def wrap_links_in_redirect(link_set_id):
         logger.info(f'Ссылка {i_link.link}')
 
         # Вызываем функцию, которая кинет запрос к кейтаро и вернёт нам ID компании и редирект-ссылку
-        keitaro_answer = create_company_in_keitaro(tlg_id=i_link.tlg_id.tlg_id, link_id=i_link.id,
-                                                   link=i_link.link)
+        alias = f"REDIRECT_BOT-TlgUserID{i_link.tlg_id.tlg_id}LinkID{i_link.id}"
+        keitaro_answer = create_company_in_keitaro(alias=alias, link=i_link.link)
         if not keitaro_answer:  # Обработка неудачного ответа KEITARO
             logger.warning(f'Не удался запрос к KEITARO для ссылки {i_link.link}, {i_link.tlg_id}.')
             continue
 
         # Делаем редиректы
         redirect_links_with_utm = []  # Список для редирект-ссылок с utm метками
-        for j_numb in range(i_link.redirect_numb):  # Выполняем итерации по кол-во редиректов
+        for j_numb in range(i_link.redirect_numb):  # Выполняем итерации по кол-ву редиректов
             logger.info(f'Делаем {j_numb + 1}-й редирект')
             utm_label = ''
             symbols_str = ''.join([string.ascii_letters, string.digits])  # Берём буквы и цифры
@@ -48,9 +48,13 @@ def wrap_links_in_redirect(link_set_id):
         # Сокращаем ссылки
         short_links = []
         numb_of_short_links = 0
-        for k_redirect_link in redirect_links_with_utm:
-            k_short_link = link_shortening(service_name=i_link.short_link_service,
-                                           link_to_short=k_redirect_link)  # Запрос к сервису сокращалок
+        for k_numb, k_redirect_link in enumerate(redirect_links_with_utm):
+            k_short_link = link_shortening(
+                service_name=i_link.short_link_service,
+                link_to_short=k_redirect_link,
+                # user pk,link_set pk, link pk, sequence_numb
+                alias=f"u{i_link.tlg_id.pk}s{i_link.link_set.pk}l{i_link.id}n{k_numb + 1}"
+            )  # Запрос к сервису сокращалок
 
             if not k_short_link:  # Обработка неудачного запроса к сервису сокращения ссылок
                 logger.warning(f'Не удался запрос к сервису сокращения ссылок {i_link.short_link_service}.'
@@ -79,21 +83,21 @@ def wrap_links_in_redirect(link_set_id):
                        f'| НАБОР ССЫЛОК C ID == {link_set_obj.id}')
 
 
-def create_company_in_keitaro(tlg_id, link_id, link):
+def create_company_in_keitaro(alias, link, domain_id=1):
     """
     Создаём в Кеитаро компанию для каждой оригинальной ссылки.
     """
     url = "http://45.9.40.104/admin_api/v1/campaigns"
     payload = {
-        "alias": f"REDIRECT_BOT-TlgUserID{tlg_id}LinkID{link_id}",
+        "alias": alias,
         "state": "active",
         "type": "position",
-        "cookies_ttl": 23,
+        "cookies_ttl": 24,
         "uniqueness_method": "ip_ua",
         "cost_type": "CPC",
         "cost_auto": True,
         "uniqueness_use_cookies": True,
-        "domain_id": 1,
+        "domain_id": domain_id,
         "cost_currency": "RUB",
         "streams": [
             {
@@ -135,7 +139,7 @@ def create_company_in_keitaro(tlg_id, link_id, link):
         "group_id": 4,
         "traffic_source_id": None,
         "parameters": {},
-        "name": f"RED_BOT|TG_ID:{tlg_id}|LINK_ID:{link_id}",
+        "name": alias,
         "bind_visitors": None
     }
     headers = {"Api-Key": "b8a6a0ce74e6281ade804a1b3fae2fed"}
@@ -146,10 +150,10 @@ def create_company_in_keitaro(tlg_id, link_id, link):
 
     redirect_link = ''.join([response.json().get('domain'), response.json().get('alias')])
     company_id = response.json().get('id')
-    return redirect_link, company_id
+    return redirect_link, company_id, response
 
 
-def link_shortening(service_name, link_to_short):
+def link_shortening(service_name, link_to_short, alias):
     """
     Функция для сокращения ссылок.
     Принимает параметры:
@@ -206,6 +210,23 @@ def link_shortening(service_name, link_to_short):
         headers = {"Content-Type": "application/json"}
         response = requests.post(url, json=payload, headers=headers)
         short_lnk = response.json().get('data').get('shortUrl')
+
+    elif service_name == 'custom_domain':
+        # Получаем список ID доменов
+        domains_lst = RedirectBotSettings.objects.get(key='my_domains').value.split()
+        # Выполняем запрос к кейтаро на создание компании с кастомными ссылками
+        keitaro_answer = create_company_in_keitaro(
+            alias=alias,
+            link=link_to_short,
+            domain_id=random.choice(domains_lst)
+        )
+        # Проверка, что запрос к кейтаро был успешным
+        if keitaro_answer:
+            response = keitaro_answer[2]
+            short_lnk = keitaro_answer[0]
+        else:
+            logger.warning(f'Неудачный запрос к кейтаро для сокращения ссылок. Ссылка: {link_to_short}')
+            return False
 
     else:  # Иначе, если service_name не определён
         logger.warning(f'Не определён сервис для сокращения ссылок. service_name=={service_name}')
