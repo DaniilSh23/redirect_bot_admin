@@ -83,7 +83,7 @@ def wrap_links_in_redirect(link_set_id):
                        f'| НАБОР ССЫЛОК C ID == {link_set_obj.id}')
 
 
-def create_company_in_keitaro(alias, link, domain_id=1):
+def create_company_in_keitaro(alias, link, domain_id=1, group_id=4):
     """
     Создаём в Кеитаро компанию для каждой оригинальной ссылки.
     """
@@ -136,7 +136,7 @@ def create_company_in_keitaro(alias, link, domain_id=1):
                 "action_payload": f"{link}"
             }
         ],
-        "group_id": 4,
+        "group_id": group_id,
         "traffic_source_id": None,
         "parameters": {},
         "name": alias,
@@ -218,7 +218,8 @@ def link_shortening(service_name, link_to_short, alias):
         keitaro_answer = create_company_in_keitaro(
             alias=alias,
             link=link_to_short,
-            domain_id=random.choice(domains_lst)
+            domain_id=random.choice(domains_lst),
+            group_id=6,     # ID группы в кеиатро для сокращалок
         )
         # Проверка, что запрос к кейтаро был успешным
         if keitaro_answer:
