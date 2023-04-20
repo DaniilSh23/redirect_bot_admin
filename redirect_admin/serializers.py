@@ -71,3 +71,13 @@ class PaymentsModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payments
         fields = '__all__'
+
+
+class TransactionSerializer(serializers.Serializer):
+    """
+    Сериалайзер для транзакций
+    """
+    tlg_id = serializers.CharField(max_length=25)
+    transaction_type = serializers.CharField(max_length=13)
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    description = serializers.CharField(max_length=250, allow_null=True)

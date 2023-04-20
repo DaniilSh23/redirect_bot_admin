@@ -5,7 +5,7 @@ import requests
 from celery import shared_task
 from loguru import logger
 
-from redirect_admin.models import LinkSet, Links, RedirectBotSettings
+from redirect_admin.models import LinkSet, Links, RedirectBotSettings, Transaction
 
 
 @shared_task
@@ -19,10 +19,12 @@ def wrap_links_in_redirect(link_set_id):
     # Получаем набор ссылок и отфильтровываем ссылки, которые в него входят
     link_set_obj = LinkSet.objects.get(id=link_set_id)
     links_lst = Links.objects.filter(link_set=link_set_obj)
+    tariff = RedirectBotSettings.objects.get(key='tariff').value
 
     logger.info(f'СТАРТ ОБЁРТКИ ССЫЛОК ДЛЯ {link_set_obj.tlg_id} '
                 f'| НАБОР ССЫЛОК C ID == {link_set_obj.id}')
 
+    total_cost = 0  # Итоговая сумма
     # Итерируемся по списку ссылок
     for i_link in links_lst:
         logger.info(f'Ссылка {i_link.link}')
@@ -71,10 +73,20 @@ def wrap_links_in_redirect(link_set_id):
         i_link.save()
 
         # Снимаем деньги с баланса
-        tariff = RedirectBotSettings.objects.get(key='tariff').value
         user_obj = i_link.tlg_id
         user_obj.balance = float(user_obj.balance) - (float(tariff) * numb_of_short_links)
         user_obj.save()
+        total_cost += float(tariff) * numb_of_short_links
+
+    # Создаём транзакцию
+    Transaction.objects.create(
+        user=link_set_obj.tlg_id,
+        transaction_type='write-off',
+        amount=float(total_cost),
+        description=f'Списание {total_cost} руб. за создание редиректов. '
+                    f'Тариф {tariff} руб. за один редирект для одной ссылки. '
+                    f'Итого создано {float(total_cost) / float(tariff)} редиректов.',
+    )
 
     # Формируем файл и отправляем его юзеру от лица бота
     send_to_tlg_rslt = send_result_file_to_tlg(link_set_id=link_set_id)

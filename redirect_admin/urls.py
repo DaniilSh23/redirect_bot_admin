@@ -1,7 +1,7 @@
 from django.urls import path
 
 from redirect_admin.views import TlgUserView, GetSettingsView, LinksView, LinkSetView, StartLinkWrapping, \
-    PaymentsView, ChangeBalance, GetLinkOwner
+    PaymentsView, ChangeBalance, GetLinkOwner, TransactionView
 
 app_name = 'redirect_admin'
 
@@ -14,4 +14,5 @@ urlpatterns = [
     path('start_wrapping/', StartLinkWrapping.as_view(), name='start_wrapping'),
     path('payments/', PaymentsView.as_view(), name='payments'),
     path('change_balance/', ChangeBalance.as_view(), name='change_balance'),
+    path('transaction/', TransactionView.as_view(), name='transaction')
 ]

@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from redirect_admin.admin_mixins import ExportUsernames
-from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet, Payments
+from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet, Payments, Transaction
 
 
 @admin.register(TlgUser)
@@ -160,4 +160,33 @@ class PaymentsAdmin(admin.ModelAdmin):
         'pay_system_type',
         'bill_status',
         'archived',
+    )
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'transaction_type',
+        'transaction_datetime',
+        'amount',
+        'description',
+    )
+    list_display_links = (
+        'user',
+        'transaction_type',
+        'transaction_datetime',
+        'amount',
+        'description',
+    )
+    search_fields = (
+        'user',
+        'transaction_type',
+        'transaction_datetime',
+        'amount',
+        'description',
+    )
+    search_help_text = 'Поиск по всем полям таблицы'
+    list_filter = (
+        'transaction_type',
     )

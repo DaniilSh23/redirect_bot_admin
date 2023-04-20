@@ -115,3 +115,23 @@ class Payments(models.Model):
         ordering = ['-id']
         verbose_name = 'Счёт'
         verbose_name_plural = 'Счета'
+
+
+class Transaction(models.Model):
+    """
+    Транзакции.
+    """
+    TRANSACTION_TYPE_LST = [
+        ('replenishment', 'пополнение'),
+        ('write-off', 'списание'),
+    ]
+    user = models.ForeignKey(verbose_name='Пользователь', to=TlgUser, on_delete=models.CASCADE)
+    transaction_type = models.CharField(verbose_name='Тип транзакции', choices=TRANSACTION_TYPE_LST, max_length=13)
+    transaction_datetime = models.DateTimeField(verbose_name='Дата и время транзакции', auto_now_add=True)
+    amount = models.DecimalField(verbose_name='Сумма', default=0, max_digits=10, decimal_places=2)
+    description = models.TextField(verbose_name='Описание', max_length=1000, null=True)
+
+    class Meta:
+        verbose_name = 'Транзакция'
+        verbose_name_plural = 'Транзакции'
+        ordering = ['-id']

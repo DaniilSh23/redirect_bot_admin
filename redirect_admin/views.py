@@ -6,9 +6,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet, Payments
+from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet, Payments, Transaction
 from redirect_admin.serializers import TlgUserSerializer, RedirectBotSettingsSerializer, LinksSerializer, \
-    LinkSetSerializer, PaymentsSerializer, PaymentsModelSerializer, LinksModelSerializer
+    LinkSetSerializer, PaymentsSerializer, PaymentsModelSerializer, LinksModelSerializer, TransactionSerializer
 
 
 class TlgUserView(APIView):
@@ -74,8 +74,18 @@ class ChangeBalance(APIView):
             user_obj = TlgUser.objects.get(tlg_id=request.data.get("tlg_id"))
             if request.data.get("action") == '+':
                 user_obj.balance = float(user_obj.balance) + float(request.data.get("value"))
+                transaction_type = 'replenishment'
             elif request.data.get("action") == '-':
                 user_obj.balance = float(user_obj.balance) - float(request.data.get("value"))
+                transaction_type = 'write-off'
+
+            # Создаём транзакцию под это дело
+            Transaction.objects.create(
+                user=user_obj,
+                transaction_type=transaction_type,
+                amount=float(request.data.get("value")),
+                description=request.data.get("description"),
+            )
             user_obj.save()
             return Response(status.HTTP_200_OK)
 
@@ -302,5 +312,39 @@ class PaymentsView(APIView):
 
         else:
             logger.warning(f'Данные от REDIRECT_BOT на создание/обновление счёта не валидны.\n'
+                           f'Запрос: {request.data}')
+            return Response({'result': 'Переданные данные не прошли валидацию.'}, status.HTTP_400_BAD_REQUEST)
+
+
+class TransactionView(APIView):
+    """
+    Вьюшка для работы с транзакциями.
+    В запросе должен прийти tlg_id, amount, description, transaction_type
+    """
+    def post(self, request):
+        logger.info(f'Получен запрос от REDIRECT_BOT о создании записи в т.Transaction')
+
+        serializer = TransactionSerializer(data=request.POST, many=False)
+        if serializer.is_valid():
+
+            try:
+                # Создаём транзакцию в БД
+                transaction_obj = Transaction.objects.create(
+                    user=TlgUser.objects.get(tlg_id=serializer.validated_data.get("tlg_id")),
+                    transaction_type=serializer.validated_data.get('transaction_type'),
+                    amount=serializer.validated_data.get('amount'),
+                    description=serializer.validated_data.get('description'),
+                )
+                return Response({'result': f'Ok👌. Создана транзакция с ID == {transaction_obj.pk} '
+                                           f'для юзера с tlg_id == {transaction_obj.user.tlg_id}'},
+                                status=status.HTTP_201_CREATED)
+            except Exception as error:
+                logger.warning(f'Не удалось создать транзакцию для юзера с '
+                               f'tlg_id == {serializer.validated_data.get("tlg_id")}. Текст ошибки: {error}')
+                return Response({'error': f'При создании транзакции в БД произошла ошибка. Вот её текст: {error}'},
+                                status.HTTP_400_BAD_REQUEST)
+
+        else:
+            logger.warning(f'Данные от REDIRECT_BOT на создание транзакций не валидны.\n'
                            f'Запрос: {request.data}')
             return Response({'result': 'Переданные данные не прошли валидацию.'}, status.HTTP_400_BAD_REQUEST)
