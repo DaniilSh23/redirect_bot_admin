@@ -5,7 +5,7 @@ import requests
 from celery import shared_task
 from loguru import logger
 
-from redirect_admin.models import LinkSet, Links, RedirectBotSettings, Transaction
+from redirect_admin.models import LinkSet, Links, RedirectBotSettings, Transaction, TlgUser
 
 
 @shared_task
@@ -83,7 +83,7 @@ def wrap_links_in_redirect(link_set_id):
         user=link_set_obj.tlg_id,
         transaction_type='write-off',
         amount=float(total_cost),
-        description=f'Списание {total_cost} руб. за создание редиректов. '
+        description=f'Списание {total_cost} руб. за создание редиректов. Баланс: {link_set_obj.tlg_id.balance} руб.'
                     f'Тариф {tariff} руб. за один редирект для одной ссылки. '
                     f'Итого создано {float(total_cost) / float(tariff)} редиректов.',
     )
@@ -291,6 +291,46 @@ def send_result_file_to_tlg(link_set_id):
         return False
 
     logger.success(f'Файл с редирект-ссылками отправлен юзеру TG ID == {link_set_obj.tlg_id.tlg_id}. '
+                   f'Удаляю файл с диска.')
+    os.remove(path=file_path)  # Удаляем файл с диска
+    return True
+
+
+@shared_task
+def send_transactions(tlg_id):
+    """
+    Задачка по формированию файла с транзакциями и отправки его в телеграм конкретному юзеру.
+    """
+    logger.info(f'Запуск задачки по формированию файла с транзакциями.')
+
+    transactions = Transaction.objects.filter(user=TlgUser.objects.get(tlg_id=tlg_id))
+
+    # Записываем файл
+    file_path = f'media/files_to_send/transactions_{tlg_id}.txt'
+    with open(file_path, mode='w', encoding='utf-8') as file:
+        for i_trans in transactions:
+            trans_type = 'зачисление' if i_trans.transaction_type == 'replenishment' else 'списание'
+            file.write(f'{i_trans.transaction_datetime.strftime("%H:%M %d.%m.%Y")} | {trans_type} | {i_trans.amount}'
+                       f' руб.\n\t{i_trans.description}\n\n{"-" * 50}\n\n')
+
+    # Отправляем файл в телеграм
+    bot_token = RedirectBotSettings.objects.get(key='bot_token').value
+    url = f'https://api.telegram.org/bot{bot_token}/sendDocument'
+
+    with open(file_path, 'rb') as file:  # Открываем файл в бинарном режиме и считываем в переменную
+        file_content = file.read()
+
+    data = {'chat_id': tlg_id}
+    files = {'document': (f'transactions_{tlg_id}.txt', file_content)}
+    response = requests.post(url=url, data=data, files=files)  # Выполняем запрос на отправку файла
+
+    if response.status_code != 200:  # Обработка неудачного запроса на отправку
+        logger.error(f'Не удалось отправить файл в телеграм для юзера TG ID:{tlg_id}!\n'
+                     f'Запрос: url={url} | data={data} | файл доступен по file_path={file_path}\n'
+                     f'Ответ:{response.json()}')
+        return False
+
+    logger.success(f'Файл с транзакциями отправлен юзеру TG ID == {tlg_id}. '
                    f'Удаляю файл с диска.')
     os.remove(path=file_path)  # Удаляем файл с диска
     return True
