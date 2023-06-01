@@ -9,8 +9,10 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import sys
 from pathlib import Path
+
+import loguru
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-vz(*+yw9!%j@g@ewd_+514tn$poyb+b5#kx$u4z*y__-yjo_05'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -141,3 +143,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CELERY_BROKER_URL = "redis://localhost:6379"  # Это адрес брокера сообщений (у нас Redis)
 CELERY_RESULT_BACKEND = "redis://localhost:6379"  # Это адрес бэкэнда результатов (тоже у нас Redis)
 CELERY_TIMEZONE = "Europe/Moscow"
+
+# Настройки логгера
+MY_LOGGER = loguru.logger
+MY_LOGGER.remove()  # Удаляем все предыдущие обработчики логов
+MY_LOGGER.add(sink=sys.stdout, level='DEBUG')   # Все логи от DEBUG и выше в stdout
+MY_LOGGER.add(  # системные логи в файл
+    sink=f'{BASE_DIR}/logs/sys_log.log',
+    level='DEBUG',
+    rotation='10 MB',
+    compression="zip",
+    enqueue=True,
+    backtrace=True,
+    diagnose=True
+)

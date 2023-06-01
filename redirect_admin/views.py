@@ -9,6 +9,7 @@ from rest_framework import status
 from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet, Payments, Transaction
 from redirect_admin.serializers import TlgUserSerializer, RedirectBotSettingsSerializer, LinksSerializer, \
     LinkSetSerializer, PaymentsSerializer, PaymentsModelSerializer, LinksModelSerializer, TransactionSerializer
+from redirect_bot_admin.settings import MY_LOGGER
 
 
 class TlgUserView(APIView):
@@ -27,34 +28,34 @@ class TlgUserView(APIView):
             try:
                 tlg_user_obj = TlgUser.objects.get(tlg_id=tlg_id)
             except Exception as error:
-                logger.error(f"Не удалось получить объект TlgUser, запрошен по tlg_id={tlg_id}\nТекст ошибки: {error}")
+                MY_LOGGER.error(f"Не удалось получить объект TlgUser, запрошен по tlg_id={tlg_id}\nТекст ошибки: {error}")
                 return Response(status=status.HTTP_400_BAD_REQUEST)
 
             bot_user_serializer = TlgUserSerializer(tlg_user_obj, many=False).data
-            logger.success(f'REDIRECT_BOT | Успешно обработан GET запрос на получение объекта TlgUser')
+            MY_LOGGER.success(f'REDIRECT_BOT | Успешно обработан GET запрос на получение объекта TlgUser')
             return Response(bot_user_serializer, status.HTTP_200_OK)
 
         else:
-            logger.warning(f'REDIRECT_BOT | Неверные параметры запроса для получения объекта TlgUser')
+            MY_LOGGER.warning(f'REDIRECT_BOT | Неверные параметры запроса для получения объекта TlgUser')
             return Response({'result': 'Неверные параметры запроса'}, status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, format=None):
         """
         Обработка POST запроса.
         """
-        logger.info(f'Получен запрос от REDIRECT_BOT на запись пользователя.')
+        MY_LOGGER.info(f'Получен запрос от REDIRECT_BOT на запись пользователя.')
         serializer = TlgUserSerializer(data=request.data)
         if serializer.is_valid():
             tlg_user_obj = TlgUser.objects.get_or_create(
                 tlg_id=serializer.data.get('tlg_id'),
                 defaults=serializer.data
             )
-            logger.success(f'Пользователь REDIRECT_BOT c TG_ID == {serializer.data.get("tlg_id")} '
+            MY_LOGGER.success(f'Пользователь REDIRECT_BOT c TG_ID == {serializer.data.get("tlg_id")} '
                            f'{"был создан" if tlg_user_obj[1] else "уже есть в БД"}.')
             result_object = TlgUserSerializer(tlg_user_obj[0], many=False).data
             return Response(result_object, status.HTTP_200_OK)
         else:
-            logger.warning(f'Данные от REDIRECT_BOT на запись пользователя не прошли валидацию.')
+            MY_LOGGER.warning(f'Данные от REDIRECT_BOT на запись пользователя не прошли валидацию.')
             return Response({'result': 'Переданные данные не прошли валидацию'}, status.HTTP_400_BAD_REQUEST)
 
 
@@ -63,7 +64,7 @@ class ChangeBalance(APIView):
     Вьюха для изменения баланса.
     """
     def post(self, request, format=None):
-        logger.info(f'Получен запрос от редирект бота на изменение баланса юзера TG ID == {request.data.get("tlg_id")}'
+        MY_LOGGER.info(f'Получен запрос от редирект бота на изменение баланса юзера TG ID == {request.data.get("tlg_id")}'
                     f' на {request.data.get("action")}{request.data.get("value")} руб.')
 
         # Проверка данных, которые пришли в запросе
@@ -90,7 +91,7 @@ class ChangeBalance(APIView):
             return Response(status.HTTP_200_OK)
 
         else:
-            logger.warning('Данные от REDIRECT_BOT об изменении баланса не прошли валидацию.')
+            MY_LOGGER.warning('Данные от REDIRECT_BOT об изменении баланса не прошли валидацию.')
             return Response({'result': 'Переданные данные не прошли валидацию'}, status.HTTP_400_BAD_REQUEST)
 
 
@@ -120,19 +121,19 @@ class GetLinkOwner(APIView):
         Принимаем company_id ссылки и достаём TG ID владельца.
         Возвращаем TG ID владельца.
         """
-        logger.info(f'Принят запрос от REDIRECT_BOT на получение ссылки.')
+        MY_LOGGER.info(f'Принят запрос от REDIRECT_BOT на получение ссылки.')
         if request.query_params.get('company_id').isdigit():   # Проверка, что пришли цифры в запросе
 
             # Достаём ссылку из БД
             try:
                 link_object = Links.objects.get(company_id=int(request.query_params.get('company_id')))
             except Exception:
-                logger.warning(f'Ссылка с company_id == {request.query_params.get("company_id")} не найдена в БД.')
+                MY_LOGGER.warning(f'Ссылка с company_id == {request.query_params.get("company_id")} не найдена в БД.')
                 return Response({'result': 'Объект ссылки не найден.'}, status.HTTP_404_NOT_FOUND)
 
             return Response({"link_owner": link_object.tlg_id.tlg_id}, status.HTTP_200_OK)
         else:
-            logger.warning(f'Получен невалидный ID ссылкии от REDIRECT_BOT.\nЗапрос: {request.data}')
+            MY_LOGGER.warning(f'Получен невалидный ID ссылкии от REDIRECT_BOT.\nЗапрос: {request.data}')
             return Response({'result': 'Переданные данные не прошли валидацию'}, status.HTTP_400_BAD_REQUEST)
 
 
@@ -151,7 +152,7 @@ class LinksView(APIView):
             link_set_id - ID набора ссылок (int)
             redirect_numb - кол-во редиректов (int)
         """
-        logger.info(f'Получен запрос от REDIRECT_BOT на создание/обновление ссылки.')
+        MY_LOGGER.info(f'Получен запрос от REDIRECT_BOT на создание/обновление ссылки.')
         serializer = LinksSerializer(data=request.data, many=True)
         if serializer.is_valid():
 
@@ -169,7 +170,7 @@ class LinksView(APIView):
                         'short_link_service': i_link.get('short_link_service'),
                     }
                 )
-                logger.success(f'REDIRECT_BOT | Ссылка {i_link.get("link")}'
+                MY_LOGGER.success(f'REDIRECT_BOT | Ссылка {i_link.get("link")}'
                                f' для юзера TG_ID == {i_link.get("tlg_id")} '
                                f'была {"создана" if link_obj[1] else "обновлёна"} {link_obj[0].id}.')
                 rslt_objects.append(link_obj[0])
@@ -177,7 +178,7 @@ class LinksView(APIView):
             result_object = LinksSerializer(rslt_objects, many=True).data
             return Response(result_object, status.HTTP_200_OK)
         else:
-            logger.warning(f'Данные от REDIRECT_BOT на запись/обновление ссылки не валидны.\nЗапрос: {request.data}')
+            MY_LOGGER.warning(f'Данные от REDIRECT_BOT на запись/обновление ссылки не валидны.\nЗапрос: {request.data}')
             return Response({'result': 'Переданные данные не прошли валидацию'}, status.HTTP_400_BAD_REQUEST)
 
 
@@ -194,7 +195,7 @@ class LinkSetView(APIView):
             tlg_id - tlg id юзера, до 25 символов (str)
             title - название набора ссылок, до 200 символов (str)
         """
-        logger.info(f'Получен запрос от REDIRECT_BOT на создание/обновление набора ссылок.')
+        MY_LOGGER.info(f'Получен запрос от REDIRECT_BOT на создание/обновление набора ссылок.')
         serializer = LinkSetSerializer(data=request.data, many=False)
         if serializer.is_valid():
             tlg_user = TlgUser.objects.get(tlg_id=request.data.get('tlg_id'))
@@ -205,12 +206,12 @@ class LinkSetView(APIView):
                     "title": serializer.data.get("title"),
                 }
             )
-            logger.success(f"Успешное {'создание' if link_set_obj[1] else 'обновление'} набора ссылок.")
+            MY_LOGGER.success(f"Успешное {'создание' if link_set_obj[1] else 'обновление'} набора ссылок.")
             serialized_obj = LinkSetSerializer(instance=link_set_obj[0], many=False).data
             return Response(serialized_obj, status.HTTP_200_OK)
 
         else:
-            logger.warning(f'Данные от REDIRECT_BOT на создание/обновление набора ссылок не валидны.\n'
+            MY_LOGGER.warning(f'Данные от REDIRECT_BOT на создание/обновление набора ссылок не валидны.\n'
                            f'Запрос: {request.data}')
             return Response({'result': 'Переданные данные не прошли валидацию.'}, status.HTTP_400_BAD_REQUEST)
 
@@ -227,14 +228,14 @@ class StartLinkWrapping(APIView):
         """
         from redirect_admin.tasks import wrap_links_in_redirect
 
-        logger.info(f'Получен запрос от REDIRECT_BOT для старта обёртки ссылок.')
+        MY_LOGGER.info(f'Получен запрос от REDIRECT_BOT для старта обёртки ссылок.')
         if str(request.data.get('link_set_id')).isdigit():
             wrap_links_in_redirect.delay(link_set_id=request.data.get('link_set_id'))
-            logger.info(f'Запущена отложенная задача для обёртки ссылок '
+            MY_LOGGER.info(f'Запущена отложенная задача для обёртки ссылок '
                         f'из набора с ID == {request.data.get("link_set_id")}')
             return Response(status.HTTP_200_OK)
         else:
-            logger.warning(f'Данные от REDIRECT_BOT для старта обёртки ссылок не валидны.\n'
+            MY_LOGGER.warning(f'Данные от REDIRECT_BOT для старта обёртки ссылок не валидны.\n'
                            f'Запрос: {request.data}')
             return Response({'result': 'Переданные данные не прошли валидацию.'}, status.HTTP_400_BAD_REQUEST)
 
@@ -247,7 +248,7 @@ class PaymentsView(APIView):
         """
         GET запрос. Принимает tlg_id, отдаёт крайний неархивный платёж для этого юзера.
         """
-        logger.info(f'Получен запрос от REDIRECT_BOT о получении инфы о записи из т.Payments')
+        MY_LOGGER.info(f'Получен запрос от REDIRECT_BOT о получении инфы о записи из т.Payments')
 
         # Получаем крайнюю неархивную запись о платеже
         if str(request.query_params.get('tlg_id')).isdigit():
@@ -269,7 +270,7 @@ class PaymentsView(APIView):
             return Response(status.HTTP_200_OK)
 
         else:
-            logger.warning(f'Данные от REDIRECT_BOT на получение/удаление инфы о счёте не валидны.\n'
+            MY_LOGGER.warning(f'Данные от REDIRECT_BOT на получение/удаление инфы о счёте не валидны.\n'
                            f'Параметры запроса: {request.query_params}')
             return Response({'result': 'Переданные данные не прошли валидацию.'}, status.HTTP_400_BAD_REQUEST)
 
@@ -283,7 +284,7 @@ class PaymentsView(APIView):
             bill_id = serializers.CharField(max_length=350) - ID счёта на оплату
             bill_status = serializers.BooleanField() - Статус счёта (True/False - оплачен или нет)
         """
-        logger.info(f'Получен запрос от REDIRECT_BOT о создании записи в т.Payments')
+        MY_LOGGER.info(f'Получен запрос от REDIRECT_BOT о создании записи в т.Payments')
 
         serializer = PaymentsSerializer(data=request.data, many=False)
         if serializer.is_valid():
@@ -311,12 +312,12 @@ class PaymentsView(APIView):
                     i_payment.archived = True
                     i_payment.save()
 
-            logger.success(f"Успешное {'создание' if payment_obj[1] else 'обновление'} счёта.")
+            MY_LOGGER.success(f"Успешное {'создание' if payment_obj[1] else 'обновление'} счёта.")
             serialized_obj = PaymentsSerializer(instance=payment_obj[0], many=False).data
             return Response(serialized_obj, status.HTTP_200_OK)
 
         else:
-            logger.warning(f'Данные от REDIRECT_BOT на создание/обновление счёта не валидны.\n'
+            MY_LOGGER.warning(f'Данные от REDIRECT_BOT на создание/обновление счёта не валидны.\n'
                            f'Запрос: {request.data}')
             return Response({'result': 'Переданные данные не прошли валидацию.'}, status.HTTP_400_BAD_REQUEST)
 
@@ -331,7 +332,7 @@ class TransactionView(APIView):
         Запуск задачи Celery по формированию файла с транзакциями по конкретному юзеру и отправка его в телеграм.
         """
         from redirect_admin.tasks import send_transactions
-        logger.info(f'Получен запрос от REDIRECT_BOT о получении транзакций.')
+        MY_LOGGER.info(f'Получен запрос от REDIRECT_BOT о получении транзакций.')
 
         if request.query_params.get('tlg_id').isdigit():
             send_transactions.delay(tlg_id=request.query_params.get('tlg_id'))
@@ -344,7 +345,7 @@ class TransactionView(APIView):
         """
         В запросе должен прийти tlg_id, amount, description, transaction_type
         """
-        logger.info(f'Получен запрос от REDIRECT_BOT о создании записи в т.Transaction')
+        MY_LOGGER.info(f'Получен запрос от REDIRECT_BOT о создании записи в т.Transaction')
 
         serializer = TransactionSerializer(data=request.POST, many=False)
         if serializer.is_valid():
@@ -363,12 +364,12 @@ class TransactionView(APIView):
                                            f'для юзера с tlg_id == {transaction_obj.user.tlg_id}'},
                                 status=status.HTTP_201_CREATED)
             except Exception as error:
-                logger.warning(f'Не удалось создать транзакцию для юзера с '
+                MY_LOGGER.warning(f'Не удалось создать транзакцию для юзера с '
                                f'tlg_id == {serializer.validated_data.get("tlg_id")}. Текст ошибки: {error}')
                 return Response({'error': f'При создании транзакции в БД произошла ошибка. Вот её текст: {error}'},
                                 status.HTTP_400_BAD_REQUEST)
 
         else:
-            logger.warning(f'Данные от REDIRECT_BOT на создание транзакций не валидны.\n'
+            MY_LOGGER.warning(f'Данные от REDIRECT_BOT на создание транзакций не валидны.\n'
                            f'Запрос: {request.data}')
             return Response({'result': 'Переданные данные не прошли валидацию.'}, status.HTTP_400_BAD_REQUEST)
