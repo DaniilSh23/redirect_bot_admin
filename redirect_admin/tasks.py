@@ -31,7 +31,8 @@ def wrap_links_in_redirect(link_set_id):
 
         # Вызываем функцию, которая кинет запрос к кейтаро и вернёт нам ID компании и редирект-ссылку
         alias = f"REDIRECT_BOT-TlgUserID{i_link.tlg_id.tlg_id}LinkID{i_link.id}"
-        keitaro_answer = create_company_in_keitaro(alias=alias, link=i_link.link)
+        keitaro_domain_id = RedirectBotSettings.objects.get(key='keitaro_domain_id').value
+        keitaro_answer = create_company_in_keitaro(alias=alias, link=i_link.link, domain_id=int(keitaro_domain_id))
         if not keitaro_answer:  # Обработка неудачного ответа KEITARO
             logger.warning(f'Не удался запрос к KEITARO для ссылки {i_link.link}, {i_link.tlg_id}.')
             continue
