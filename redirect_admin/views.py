@@ -1,6 +1,9 @@
 import datetime
+import json
 
 import pytz
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from loguru import logger
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -373,3 +376,39 @@ class TransactionView(APIView):
             MY_LOGGER.warning(f'Данные от REDIRECT_BOT на создание транзакций не валидны.\n'
                            f'Запрос: {request.data}')
             return Response({'result': 'Переданные данные не прошли валидацию.'}, status.HTTP_400_BAD_REQUEST)
+
+
+@csrf_exempt
+def get_up_bot(request):
+    """
+    Вьюшка для восстановления бота после сноса. В теле принимает json с данными для восстановления
+    """
+    if request.method == 'POST':
+        MY_LOGGER.info(f'Получен запрос на вьюшку восстановления бота после сноса')
+        recovery_token = RedirectBotSettings.objects.filter(key='recovery_token')[0].value
+        req_data = json.loads(request.body)
+
+        if req_data.get("recovery_token") != recovery_token:
+            MY_LOGGER.warning(f'Выполнен запрос к вьюшке восстановления бота с неверным recovery_token: '
+                              f'{request.POST.get("recovery_token")!r} | верное значение {recovery_token!r}')
+            return HttpResponse(status=403, content='у вас нет доступа')
+
+        MY_LOGGER.debug(f'Удаляем всех админов')
+        RedirectBotSettings.objects.filter(key="redirect_bot_admin").delete()
+        for i_admin in req_data.get("redirect_bot_admin"):
+            MY_LOGGER.debug(f'Создаём админа с ID == {i_admin!r}')
+            RedirectBotSettings.objects.create(key="redirect_bot_admin", value=i_admin)
+
+        for i_key in ("bot_token", "feedback_link", "support_username", "who_approves_payments"):
+            obj, created = RedirectBotSettings.objects.update_or_create(
+                key=i_key,
+                defaults={
+                    "key": i_key,
+                    "value": req_data.get(i_key)
+                }
+            )
+            MY_LOGGER.debug(f'Ключ {i_key!r} {"обновлён" if created else "создан"}. Значение {req_data.get(i_key)}')
+        return HttpResponse(status=200)
+
+    else:
+        return HttpResponse(status=405, content='недопустимый метод запроса')
