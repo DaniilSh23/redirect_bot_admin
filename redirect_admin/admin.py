@@ -74,16 +74,14 @@ class LinksAdmin(admin.ModelAdmin):
         'created_at',
     )
     search_fields = (
-        "id",
-        'tlg_id',
+        'tlg_id__tlg_id',  # Пример: поиск по имени автора
         'link',
         'redirect_links',
         'redirect_numb',
         'company_id',
-        'created_at',
     )
-    search_help_text = ('поиск по полям: ID, Автор, Ссылка, Редирект ссылки, Кол-во редиректов, '
-                        'ID компании(keitaro), Дата создания')
+    search_help_text = ('поиск по полям: Автор (по TG ID), Ссылка, Редирект ссылки, '
+                        'Кол-во редиректов, ID компании(keitaro)')
 
     fieldsets = [
         ('Основная информация', {
