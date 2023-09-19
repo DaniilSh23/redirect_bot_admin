@@ -60,6 +60,7 @@ class LinksAdmin(admin.ModelAdmin):
         'tlg_id',
         'link',
         'redirect_links',
+        'short_links',
         'redirect_numb',
         'company_id',
         'created_at',
@@ -69,6 +70,7 @@ class LinksAdmin(admin.ModelAdmin):
         'tlg_id',
         'link',
         'redirect_links',
+        'short_links'
         'redirect_numb',
         'company_id',
         'created_at',
@@ -77,6 +79,7 @@ class LinksAdmin(admin.ModelAdmin):
         'tlg_id__tlg_id',  # Пример: поиск по имени автора
         'link',
         'redirect_links',
+        'short_links',
         'redirect_numb',
         'company_id',
     )
