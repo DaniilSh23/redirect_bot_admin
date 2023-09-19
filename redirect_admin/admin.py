@@ -84,7 +84,7 @@ class LinksAdmin(admin.ModelAdmin):
         'company_id',
     )
     search_help_text = ('поиск по полям: Автор (по TG ID), Ссылка, Редирект ссылки, '
-                        'Кол-во редиректов, ID компании(keitaro)')
+                        'Сокращённые ссылки, Кол-во редиректов, ID компании(keitaro)')
 
     fieldsets = [
         ('Основная информация', {
