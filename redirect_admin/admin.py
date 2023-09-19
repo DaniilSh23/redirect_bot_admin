@@ -59,6 +59,7 @@ class LinksAdmin(admin.ModelAdmin):
         "id",
         'tlg_id',
         'link',
+        'redirect_links',
         'redirect_numb',
         'company_id',
         'created_at',
@@ -67,11 +68,23 @@ class LinksAdmin(admin.ModelAdmin):
         "id",
         'tlg_id',
         'link',
+        'redirect_links',
         'redirect_numb',
         'company_id',
         'created_at',
-
     )
+    search_fields = (
+        "id",
+        'tlg_id',
+        'link',
+        'redirect_links',
+        'redirect_numb',
+        'company_id',
+        'created_at',
+    )
+    search_help_text = ('поиск по полям: ID, Автор, Ссылка, Редирект ссылки, Кол-во редиректов, '
+                        'ID компании(keitaro), Дата создания')
+
     fieldsets = [
         ('Основная информация', {
             'fields': ('tlg_id', 'link_set', 'link', 'redirect_numb'),
