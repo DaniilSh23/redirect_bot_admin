@@ -100,7 +100,9 @@ def create_company_in_keitaro(alias, link, domain_id=1, group_id=4):
     """
     Создаём в Кеитаро компанию для каждой оригинальной ссылки.
     """
-    url = "http://45.9.40.104/admin_api/v1/campaigns"
+    keitaro_main_domain = RedirectBotSettings.objects.get(key='keitaro_main_domain').value
+    keitaro_api_key = RedirectBotSettings.objects.get(key='keitaro_api_key').value
+    url = f"http://{keitaro_main_domain}/admin_api/v1/campaigns"
     payload = {
         "alias": alias,
         "state": "active",
@@ -155,7 +157,7 @@ def create_company_in_keitaro(alias, link, domain_id=1, group_id=4):
         "name": alias,
         "bind_visitors": None
     }
-    headers = {"Api-Key": "b8a6a0ce74e6281ade804a1b3fae2fed"}
+    headers = {"Api-Key": keitaro_api_key}
     response = requests.post(url, json=payload, headers=headers)
     if response.status_code != 200:
         logger.error(f'НЕУДАЧНЫЙ ЗАПРОС К КЕИТАРО. Ответ хоста: {response.json()}')
