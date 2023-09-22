@@ -129,7 +129,7 @@ class GetLinkOwner(APIView):
 
             # Достаём ссылку из БД
             try:
-                link_object = Links.objects.get(company_id=int(request.query_params.get('company_id')))
+                link_object = Links.objects.get(company_id=request.query_params.get('company_id'))
             except Exception:
                 MY_LOGGER.warning(f'Ссылка с company_id == {request.query_params.get("company_id")} не найдена в БД.')
                 return Response({'result': 'Объект ссылки не найден.'}, status.HTTP_404_NOT_FOUND)
