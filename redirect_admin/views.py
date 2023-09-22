@@ -2,6 +2,7 @@ import datetime
 import json
 
 import pytz
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from loguru import logger
@@ -130,9 +131,13 @@ class GetLinkOwner(APIView):
             # Достаём ссылку из БД
             try:
                 link_object = Links.objects.get(company_id=request.query_params.get('company_id'))
-            except Exception:
+            except ObjectDoesNotExist:
                 MY_LOGGER.warning(f'Ссылка с company_id == {request.query_params.get("company_id")} не найдена в БД.')
                 return Response({'result': 'Объект ссылки не найден.'}, status.HTTP_404_NOT_FOUND)
+            except MultipleObjectsReturned:
+                MY_LOGGER.warning(f'Получено более одной ссылки с company_id == '
+                                  f'{request.query_params.get("company_id")}')
+                link_object = Links.objects.filter(company_id=request.query_params.get('company_id')).first()
 
             return Response({"link_owner": link_object.tlg_id.tlg_id}, status.HTTP_200_OK)
         else:
