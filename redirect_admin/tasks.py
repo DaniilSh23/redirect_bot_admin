@@ -1,3 +1,4 @@
+import hashlib
 import os
 import random
 import string
@@ -52,11 +53,14 @@ def wrap_links_in_redirect(link_set_id):
         short_links = []
         numb_of_short_links = 0
         for k_numb, k_redirect_link in enumerate(redirect_links_with_utm):
+            string_for_link = f"u{i_link.tlg_id.pk}s{i_link.link_set.pk}l{i_link.id}n{k_numb + 1}"
+            hash_object = hashlib.md5(string_for_link.encode())
+            hash_for_link = hash_object.hexdigest()
             k_short_link = link_shortening(
                 service_name=i_link.short_link_service,
                 link_to_short=k_redirect_link,
                 # user pk,link_set pk, link pk, sequence_numb
-                alias=f"u{i_link.tlg_id.pk}s{i_link.link_set.pk}l{i_link.id}n{k_numb + 1}"
+                alias=hash_for_link,
             )  # Запрос к сервису сокращалок
 
             if not k_short_link:  # Обработка неудачного запроса к сервису сокращения ссылок
