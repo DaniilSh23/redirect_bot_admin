@@ -253,7 +253,8 @@ def link_shortening(service_name, link_to_short, alias):
         return False
 
     if response.status_code != 200:  # Проверка на отрицательный ответ хоста
-        logger.warning(f'Неудачный запрос для сокращения ссылки к сервису {service_name}. Ссылка: {link_to_short}')
+        logger.warning(f'Неудачный запрос для сокращения ссылки к сервису {service_name}. Ссылка: {link_to_short} '
+                       f'| Ответ на запрос: {response.text}')
         return False
     else:
         return short_lnk
