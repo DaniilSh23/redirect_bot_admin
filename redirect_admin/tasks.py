@@ -258,6 +258,7 @@ def link_shortening(service_name, link_to_short, alias):
         }
         MY_LOGGER.debug(f"Выполняем запрос | url: {url!r} | payload: {payload!r} | headers: {headers!r}")
         response = requests.post(url, json=payload, headers=headers)
+        MY_LOGGER.debug(f"Ответ на запрос rebrandly.com | Ответ: {response.text}")
         short_lnk = response.json().get('shorturl')
 
     elif service_name == "haa.su":
