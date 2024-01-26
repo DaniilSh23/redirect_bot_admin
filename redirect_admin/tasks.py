@@ -7,6 +7,7 @@ from celery import shared_task
 from loguru import logger
 
 from redirect_admin.models import LinkSet, Links, RedirectBotSettings, Transaction, TlgUser
+from redirect_bot_admin.settings import MY_LOGGER
 
 
 @shared_task
@@ -180,6 +181,8 @@ def link_shortening(service_name, link_to_short, alias):
         link_to_short - ссылка для сокращения.
     Функция выполняет запрос и возвращает сокращённую ссылку. При неудачном запросе возвращает False.
     """
+    MY_LOGGER.debug(f"Готовим запрос для сокращения ссылки через {service_name}")
+
     if service_name == 'cutt.ly':
         api_token = RedirectBotSettings.objects.get(key='cutt.ly_api_token')
         response = requests.get(f'http://cutt.ly/api/api.php?key={api_token}&short={link_to_short}')
@@ -229,6 +232,51 @@ def link_shortening(service_name, link_to_short, alias):
         headers = {"Content-Type": "application/json"}
         response = requests.post(url, json=payload, headers=headers)
         short_lnk = response.json().get('data').get('shortUrl')
+
+    elif service_name == "kurl.ru":
+        url = "https://kurl.ru/shorten"
+        payload = ("-----011000010111000001101001\r\nContent-Disposition: form-data; "
+                   f"name=\"url\"\r\n\r\n{link_to_short}\r\n-----011000010111000001101001--\r\n")
+        headers = {
+            "cookie": "PHPSESSID=4ce6688ddcbf5be5a019499d05aca739",
+            "Content-Type": "multipart/form-data; boundary=---011000010111000001101001",
+            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/110.0",
+        }
+        MY_LOGGER.debug(f"Выполняем запрос | url: {url!r} | payload: {payload!r} | headers: {headers!r}")
+        response = requests.post(url, data=payload, headers=headers)
+        short_lnk = response.json().get('data').get('shorturl')
+
+    elif service_name == "rebrandly.com":
+        url = "https://api.rebrandly.com/v1/links"
+        payload = {
+            "destination": link_to_short,
+            "domain": {"fullName": "rebrand.ly"},
+        }
+        headers = {
+            "Content-type": "application/json",
+            "apikey": "e86da57be8684134a43e9ec80fb9ae20",
+        }
+        MY_LOGGER.debug(f"Выполняем запрос | url: {url!r} | payload: {payload!r} | headers: {headers!r}")
+        response = requests.post(url, json=payload, headers=headers)
+        short_lnk = response.json().get('shorturl')
+
+    elif service_name == "haa.su":
+        from bs4 import BeautifulSoup
+
+        url = "http://haa.su/"
+        query_params = {"url": link_to_short}
+        MY_LOGGER.debug(f"Выполняем запрос | url: {url!r} | query_params: {query_params!r}")
+        response = requests.get(url=url, params=query_params)
+
+        # Берем html страницу, создаем объект супа и ищем нужный тег
+        html_content = response.text
+        soup = BeautifulSoup(html_content, "html.parser")
+        searched_tag = soup.find(attrs={"id": "result-url"})
+
+        # Тег не найден
+        if not searched_tag:
+            return False
+        short_lnk = searched_tag.get('value')
 
     elif service_name == 'custom_domain':
         # Получаем список ID доменов
