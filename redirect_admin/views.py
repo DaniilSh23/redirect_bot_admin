@@ -5,15 +5,17 @@ import pytz
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from loguru import logger
+from drf_spectacular.utils import extend_schema
+from rest_framework.request import Request as DRFRequest
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet, Payments, Transaction
+from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet, Payments, Transaction, \
+    InterfaceLanguages
 from redirect_admin.serializers import TlgUserSerializer, RedirectBotSettingsSerializer, LinksSerializer, \
-    LinkSetSerializer, PaymentsSerializer, PaymentsModelSerializer, LinksModelSerializer, TransactionSerializer
-from redirect_bot_admin.settings import MY_LOGGER
+    LinkSetSerializer, PaymentsSerializer, PaymentsModelSerializer, TransactionSerializer, LanguageInterfaceInSerializer
+from redirect_bot_admin.settings import MY_LOGGER, BOT_TOKEN
 
 
 class TlgUserView(APIView):
@@ -62,6 +64,111 @@ class TlgUserView(APIView):
         else:
             MY_LOGGER.warning(f'Данные от REDIRECT_BOT на запись пользователя не прошли валидацию.')
             return Response({'result': 'Переданные данные не прошли валидацию'}, status.HTTP_400_BAD_REQUEST)
+
+
+class InterfaceLanguage(APIView):
+    """
+    Вьюшки для работы с языками интерфейса бота.
+    """
+
+    def get(self, request: DRFRequest):
+        """
+        Вьюшка для получения языка интерфейса пользователя бота или получения всех доступных языков интерфейса.
+            ?tlg_id=... - получение данных об одном пользователе по tlg_id
+            Если tlg_id не указан, то GET запрос вернет все доступные языки интерфейса.
+        """
+        MY_LOGGER.info(f"Получен GET запрос на вьюшку InterfaceLanguage | {request.GET}")
+        tlg_id = request.query_params.get('tlg_id')
+
+        # Если не указан tlg_id, то возвращаем все доступные языки интерфейса
+        if not tlg_id:
+            languages = InterfaceLanguages.objects.all()
+            response_data = list()
+            for i_lang in languages:    # Собираем данные для ответа - добавляем все языки
+                response_data.append({
+                    "language_code": i_lang.language_code,
+                    "language": i_lang.language,
+                })
+            MY_LOGGER.success(f'REDIRECT_BOT | Успешно обработан GET запрос на получение всех языков интерфейса')
+            return Response(data=response_data, status=status.HTTP_200_OK)
+
+        # Проверяем, что tlg_id - это число
+        elif str(tlg_id).isdigit():
+
+            try:
+                tlg_user_obj = TlgUser.objects.get(tlg_id=tlg_id)
+            except Exception as error:
+                MY_LOGGER.error(
+                    f"Не удалось получить объект TlgUser, запрошен по tlg_id={tlg_id}\nТекст ошибки: {error}")
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+
+            if not tlg_user_obj.interface_language:
+                default_lang = InterfaceLanguages.objects.filter(default_language=True).first()
+                MY_LOGGER.debug(f"У юзера не установлен язык, ставим дефолтный: {default_lang!r}")
+                tlg_user_obj.interface_language = default_lang
+                tlg_user_obj.save()
+
+            response_data = {
+                "tlg_id": tlg_user_obj.tlg_id,
+                "language_code": tlg_user_obj.interface_language.language_code if tlg_user_obj.interface_language else None,
+                "language": tlg_user_obj.interface_language.language if tlg_user_obj.interface_language else None,
+            }
+            MY_LOGGER.success(f'REDIRECT_BOT | Успешно обработан GET запрос на получение языка интерфейса юзера '
+                              f'tlg_id=={tlg_id}')
+            return Response(data=response_data, status=status.HTTP_200_OK)
+
+        else:
+            MY_LOGGER.warning(f'REDIRECT_BOT | Неверные параметры запроса для получения языка интерфейса юзера')
+            return Response({'result': 'Неверные параметры запроса'}, status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(request=LanguageInterfaceInSerializer, responses=str, methods=['post'])
+    def post(self, request: DRFRequest):
+        """
+        Вьюшка для обработки POST запроса на изменение языка интерфейса пользователя бота.
+        """
+        MY_LOGGER.info(f"Получен POST запрос на вьюшку InterfaceLanguage | {request.POST}")
+
+        ser = LanguageInterfaceInSerializer(data=request.data)
+
+        # Проверка токена
+        if BOT_TOKEN != request.data.get("token"):
+            MY_LOGGER.warning(f'Неверный токен запроса. {BOT_TOKEN} != {request.data.get("token")}')
+            return Response(status=403, data={"result": "Неверный токен"})
+
+        if ser.is_valid():
+            validated_data = ser.validated_data
+
+            # Пробуем получить объект пользователя
+            try:
+                tlg_user_obj = TlgUser.objects.get(tlg_id=validated_data.get("tlg_id"))
+            except Exception as error:
+                MY_LOGGER.error(
+                    f"Не удалось получить объект TlgUser, запрошен по tlg_id={validated_data.get('tlg_id')}\n"
+                    f"Текст ошибки: {error}")
+                return Response(status=status.HTTP_404_NOT_FOUND,
+                                data={"err": f"Не найден юзер с TG ID == {validated_data.get('tlg_id')}"})
+
+            # Пробуем получить запись в БД с переданным в запросе языком интерфейса
+            try:
+                interface_language = InterfaceLanguages.objects.get(language_code=validated_data.get("language_code"))
+            except Exception as error:
+                MY_LOGGER.error(
+                    f"Не удалось получить объект InterfaceLanguages, запрошен по "
+                    f"language_code={validated_data.get('language_code')}\nТекст ошибки: {error}")
+                return Response(
+                    status=status.HTTP_404_NOT_FOUND,
+                    data={"err": f"Не найден язык интерфейса с кодом == {validated_data.get('language_code')}"}
+                )
+
+            # Изменяем язык интерфейса пользователя
+            tlg_user_obj.interface_language = interface_language
+            tlg_user_obj.save()
+            MY_LOGGER.success(f"Язык интерфейса успешно установлен! | {tlg_user_obj}, {interface_language}")
+            return Response(status=200, data={'result': 'OK!'})
+
+        else:
+            MY_LOGGER.warning(f'Невалидные данные запроса. | Запрос: {request.data} | Ошибки: {ser.errors}')
+            return Response(status=400, data={"result": f"Неудачный запрос | {ser.errors}"})
 
 
 class ChangeBalance(APIView):

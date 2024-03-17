@@ -12,6 +12,15 @@ class TlgUserSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class LanguageInterfaceInSerializer(serializers.Serializer):
+    """
+    Сериалайзер для запроса на изменение языка интерфейса пользователя бота
+    """
+    token = serializers.CharField()
+    tlg_id = serializers.CharField()
+    language_code = serializers.CharField()
+
+
 class RedirectBotSettingsSerializer(serializers.ModelSerializer):
     """
     Сериалайзер для модели RedirectBotSettings.

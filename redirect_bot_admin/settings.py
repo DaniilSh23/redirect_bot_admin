@@ -13,22 +13,50 @@ import sys
 from pathlib import Path
 
 import loguru
+import environ
+
+env = environ.Env(
+    DEBUG=bool,  # Для переменной DEBUG указываем тип данных, когда достаём из .env
+    SECRET_KEY=str,
+    DOMAIN_NAME=str,
+    REDIS_HOST=str,
+    REDIS_PORT=str,
+    DATABASE_NAME=str,
+    DATABASE_USER=str,
+    DATABASE_PASSWORD=str,
+    DATABASE_HOST=str,
+    DATABASE_PORT=str,
+    TG_API_ID=str,
+    TG_API_HASH=str,
+    BOT_TOKEN=str,
+    OPENAI_KEY=str,
+    SEND_NEWS_TIMEOUT=int,
+    SHOW_SQL_LOG=bool,
+    SENTRY_DSN=str,
+    ACCOUNT_SERVICE_HOST=str,
+    OPEN_AI_APP_TOKEN=str,
+    OPEN_AI_SERVICE_HOST=str,
+    BOT_LINK=str,
+)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Take environment variables from .env file
+# Это отсюда https://django-environ.readthedocs.io/en/latest/quickstart.html
+environ.Env.read_env(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-vz(*+yw9!%j@g@ewd_+514tn$poyb+b5#kx$u4z*y__-yjo_05'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = ['*']
-
+DOMAIN_NAME = env('DOMAIN_NAME')
 
 # Application definition
 
@@ -39,10 +67,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     # Собственные приложения
     'redirect_admin',
+
     # Сторонние приложения
     'rest_framework',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -106,6 +137,23 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# REST FRAMEWORK settings
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+}
+
+# DRF SPECTACULAR settings
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'YourTelegram API',
+    'DESCRIPTION': 'API for YourTelegram Project',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -140,8 +188,10 @@ MEDIA_URL = '/media/'   # путь в адресной строке для по�
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Celery settings
-CELERY_BROKER_URL = "redis://localhost:6379"  # Это адрес брокера сообщений (у нас Redis)
-CELERY_RESULT_BACKEND = "redis://localhost:6379"  # Это адрес бэкэнда результатов (тоже у нас Redis)
+REDIS_HOST = env('REDIS_HOST')
+REDIS_PORT = env('REDIS_PORT')
+CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}"  # Это адрес брокера сообщений (у нас Redis)
+CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}"  # Это адрес бэкэнда результатов (тоже у нас Redis)
 CELERY_TIMEZONE = "Europe/Moscow"
 
 # Настройки логгера
@@ -157,3 +207,32 @@ MY_LOGGER.add(  # системные логи в файл
     backtrace=True,
     diagnose=True
 )
+
+# Настройка логирование запросов к БД
+SHOW_SQL_LOG = env('SHOW_SQL_LOG')
+if SHOW_SQL_LOG:
+    LOGGING = {
+        'version': 1,
+        'filters': {
+            'require_debug_true': {
+                '()': 'django.utils.log.RequireDebugTrue',
+            },
+        },
+        'handlers': {
+            'console': {
+                'level': 'DEBUG',
+                'filters': ['require_debug_true'],
+                'class': 'logging.StreamHandler',
+            },
+        },
+        'loggers': {
+            'django.db.backends': {
+                'level': 'DEBUG',
+                'handlers': ['console'],
+            },
+        },
+    }
+
+
+# Настройки бота
+BOT_TOKEN = env('BOT_TOKEN')

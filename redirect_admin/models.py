@@ -28,6 +28,8 @@ class TlgUser(models.Model):
     username = models.CharField(verbose_name='username(TG)', max_length=100, blank=True, null=False)
     language_code = models.CharField(verbose_name='языковой код(TG)', max_length=20, blank=True, null=False)
     balance = models.DecimalField(verbose_name='Баланс', max_digits=10, decimal_places=2, default=0)
+    interface_language = models.ForeignKey(verbose_name='язык интерфейса', to="InterfaceLanguages",
+                                           on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
         return f'Пользователь с TG ID: {self.tlg_id}'
@@ -36,6 +38,23 @@ class TlgUser(models.Model):
         ordering = ['-id']
         verbose_name = 'пользователь TG'
         verbose_name_plural = 'пользователи TG'
+
+
+class InterfaceLanguages(models.Model):
+    """
+    Модель для хранения доступных языков интерфейса бота.
+    """
+    language_code = models.CharField(verbose_name="языковой код", max_length=5)
+    language = models.CharField(verbose_name="язык", max_length=25)
+    default_language = models.BooleanField(verbose_name="дефолтный язык", default=False)
+
+    def __str__(self):
+        return f'язык интерфейса: {self.language_code}'
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = "язык интерфейса"
+        verbose_name_plural = "языки интерфейса"
 
 
 class LinkSet(models.Model):

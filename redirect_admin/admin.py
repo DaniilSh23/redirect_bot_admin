@@ -1,7 +1,8 @@
 from django.contrib import admin
 
 from redirect_admin.admin_mixins import ExportUsernames
-from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet, Payments, Transaction
+from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet, Payments, Transaction, \
+    InterfaceLanguages
 
 
 @admin.register(TlgUser)
@@ -42,12 +43,33 @@ class TlgUserAdmin(admin.ModelAdmin, ExportUsernames):
             'description': 'Данные, связанные с деньгами: баланс, ID счетов и т.п.'
         }),
         ('Дополнительная информация', {
-            'fields': ('is_verified', 'is_scam', 'is_fake', 'is_premium', 'language_code'),
+            'fields': ('is_verified', 'is_scam', 'is_fake', 'is_premium', 'language_code', 'interface_language'),
             'classes': ('wide', 'collapse'),
             'description': 'Дополнительная информация о пользователе Telegram, '
                            'такая как: верификация, мошенничество и т.д.',
         })
     ]
+
+
+@admin.register(InterfaceLanguages)
+class InterfaceLanguagesAdmin(admin.ModelAdmin):
+    """
+    Регистрация в админке модели с языками интерфейса бота.
+    """
+    list_display = (
+        "id",
+        "language",
+        "language_code",
+        "default_language",
+    )
+    list_display_links = (
+        "id",
+        "language",
+        "language_code",
+    )
+    list_editable = (
+        "default_language",
+    )
 
 
 @admin.register(Links)
