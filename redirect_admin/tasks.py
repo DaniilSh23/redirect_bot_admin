@@ -296,6 +296,11 @@ def link_shortening(service_name, link_to_short, alias):
         else:
             logger.warning(f'Неудачный запрос к кейтаро для сокращения ссылок. Ссылка: {link_to_short}')
             return False
+        
+    elif service_name == "users_domain":    # Личные домены пользователя
+        # TODO: дописать логику по использованию пользователем ранее добавленных доменов
+        # TODO: если доменов у юзера нет, то выкидываем отсюда False
+        return False
 
     else:  # Иначе, если service_name не определён
         logger.warning(f'Не определён сервис для сокращения ссылок. service_name=={service_name}')
