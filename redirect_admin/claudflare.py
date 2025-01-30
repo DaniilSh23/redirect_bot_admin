@@ -5,7 +5,7 @@
 import requests
 
 from django.core.exceptions import ObjectDoesNotExist
-from redirect_bot_admin.redirect_admin.models import RedirectBotSettings
+from redirect_admin.models import RedirectBotSettings
 from redirect_bot_admin.settings import MY_LOGGER
 
 
@@ -54,7 +54,7 @@ class ClaudFlareAgent:
         else:
             return False
 
-    def set_dns_for_new_zone(self, ip_for_a_record: str):
+    def set_dns_for_new_zone(self, ip_for_a_record: str) -> bool:
         """
         Установка DNS А-записей во вновь созданную зону (подключенный домен)
         :param ip_for_a_record: str - IP адрес для установки в А-запись для новой зоны (домена) ClaudFlare.
@@ -70,7 +70,7 @@ class ClaudFlareAgent:
         req_data = {
             "comment": "FROM REDIRECT BOT WITH LOVE",
             "content": ip_for_a_record,
-            "name": self.domain_name,
+            "name": "@",
             "proxied": True,
             "ttl": 3600,
             "type": "A",
@@ -81,6 +81,8 @@ class ClaudFlareAgent:
                 f"Не удалось добавить DNS А-запись в новую зону ClaudFlare. Ответ: status == {response.status_code} | {response.json()}"
             )
             return False
+        
+        return True
 
     def get_dns_ip_address(self):
         """
@@ -103,7 +105,7 @@ class ClaudFlareAgent:
         if not ip_for_a_record:
             MY_LOGGER.error(err_msg)
             return False
-        
+
         self.domain_name = domain_name
 
         if not self.create_zone():
