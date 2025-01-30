@@ -4,8 +4,6 @@
 
 import requests
 
-from django.core.exceptions import ObjectDoesNotExist
-from redirect_admin.models import RedirectBotSettings
 from redirect_bot_admin.settings import MY_LOGGER
 
 
@@ -83,37 +81,4 @@ class ClaudFlareAgent:
             return False
         
         return True
-
-    def get_dns_ip_address(self):
-        """
-        Получение из БД IP адреса для создания А-записи на новой зоне (домене) в ClaudFlare.
-        """
-        try:
-            return RedirectBotSettings.objects.get(key="keitaro_main_domain").value
-        except ObjectDoesNotExist:
-            MY_LOGGER.error("Ключ keitaro_main_domain не установлен в настройках!")
-            return None
     
-    def add_domain_to_claudflare_saga(self, domain_name: str):
-        """
-        Оркестрация саги добавления нового домена в ClaudFlare. Возвращает bool, как флаг успеха.
-        :param domain_name: str - доменное имя для установки в ClaudFlare
-        """
-        err_msg = "Не удалось создать новый домен в ClaudFlare."
-
-        ip_for_a_record = self.get_dns_ip_address()
-        if not ip_for_a_record:
-            MY_LOGGER.error(err_msg)
-            return False
-
-        self.domain_name = domain_name
-
-        if not self.create_zone():
-            MY_LOGGER.error(err_msg)
-            return False
-
-        if not self.set_dns_for_new_zone(ip_for_a_record=ip_for_a_record):
-            MY_LOGGER.error(err_msg)
-            return False
-
-        return True

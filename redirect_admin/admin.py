@@ -1,8 +1,16 @@
 from django.contrib import admin
 
 from redirect_admin.admin_mixins import ExportUsernames
-from redirect_admin.models import TlgUser, RedirectBotSettings, Links, LinkSet, Payments, Transaction, \
-    InterfaceLanguages
+from redirect_admin.models import (
+    TlgUser,
+    RedirectBotSettings,
+    Links,
+    LinkSet,
+    Payments,
+    Transaction,
+    InterfaceLanguages,
+    UserDomains,
+)
 
 
 @admin.register(TlgUser)
@@ -10,8 +18,9 @@ class TlgUserAdmin(admin.ModelAdmin, ExportUsernames):
     """
     Регистрация модели TlgUser в админке.
     """
+
     actions = [
-        'export_usernames',
+        "export_usernames",
     ]
     list_display = (
         "id",
@@ -30,24 +39,40 @@ class TlgUserAdmin(admin.ModelAdmin, ExportUsernames):
     )
     search_fields = "tlg_id", "first_name", "username"
     search_help_text = "Поиск по TG ID, TG имени, TG username"
-    ordering = ['-id']
+    ordering = ["-id"]
     fieldsets = [
-        ('Основная информация', {
-            "fields": ("tlg_id", "username", "first_name", "last_name"),
-            "classes": ("wide", "extrapretty"),
-            "description": "Основные данные о пользвателе Telegram.",
-        }),
-        ('Финансы', {
-            'fields': ('balance',),
-            'classes': ('wide', 'extrapretty', 'collapse'),
-            'description': 'Данные, связанные с деньгами: баланс, ID счетов и т.п.'
-        }),
-        ('Дополнительная информация', {
-            'fields': ('is_verified', 'is_scam', 'is_fake', 'is_premium', 'language_code', 'interface_language'),
-            'classes': ('wide', 'collapse'),
-            'description': 'Дополнительная информация о пользователе Telegram, '
-                           'такая как: верификация, мошенничество и т.д.',
-        })
+        (
+            "Основная информация",
+            {
+                "fields": ("tlg_id", "username", "first_name", "last_name"),
+                "classes": ("wide", "extrapretty"),
+                "description": "Основные данные о пользвателе Telegram.",
+            },
+        ),
+        (
+            "Финансы",
+            {
+                "fields": ("balance",),
+                "classes": ("wide", "extrapretty", "collapse"),
+                "description": "Данные, связанные с деньгами: баланс, ID счетов и т.п.",
+            },
+        ),
+        (
+            "Дополнительная информация",
+            {
+                "fields": (
+                    "is_verified",
+                    "is_scam",
+                    "is_fake",
+                    "is_premium",
+                    "language_code",
+                    "interface_language",
+                ),
+                "classes": ("wide", "collapse"),
+                "description": "Дополнительная информация о пользователе Telegram, "
+                "такая как: верификация, мошенничество и т.д.",
+            },
+        ),
     ]
 
 
@@ -56,6 +81,7 @@ class InterfaceLanguagesAdmin(admin.ModelAdmin):
     """
     Регистрация в админке модели с языками интерфейса бота.
     """
+
     list_display = (
         "id",
         "language",
@@ -67,8 +93,26 @@ class InterfaceLanguagesAdmin(admin.ModelAdmin):
         "language",
         "language_code",
     )
-    list_editable = (
-        "default_language",
+    list_editable = ("default_language",)
+
+
+@admin.register(UserDomains)
+class UserDomainsAdmin(admin.ModelAdmin):
+    """
+    Регистрация в админке модели с собственными доменами юзеров.
+    """
+
+    list_display = (
+        "id",
+        "tlg_user",
+        "domain",
+        "created_at",
+    )
+    list_display_links = (
+        "id",
+        "tlg_user",
+        "domain",
+        "created_at",
     )
 
 
@@ -77,55 +121,67 @@ class LinksAdmin(admin.ModelAdmin):
     """
     Регистрация в админке модели для настроек Links.
     """
+
     list_display = (
         "id",
-        'tlg_id',
-        'link',
-        'redirect_links',
-        'short_links',
-        'redirect_numb',
-        'company_id',
-        'created_at',
+        "tlg_id",
+        "link",
+        "redirect_links",
+        "short_links",
+        "redirect_numb",
+        "company_id",
+        "created_at",
     )
     list_display_links = (
         "id",
-        'tlg_id',
-        'link',
-        'redirect_links',
-        'short_links',
-        'redirect_numb',
-        'company_id',
-        'created_at',
+        "tlg_id",
+        "link",
+        "redirect_links",
+        "short_links",
+        "redirect_numb",
+        "company_id",
+        "created_at",
     )
     search_fields = (
-        'tlg_id__tlg_id',  # Пример: поиск по имени автора
-        'link',
-        'redirect_links',
-        'short_links',
-        'redirect_numb',
-        'company_id',
+        "tlg_id__tlg_id",  # Пример: поиск по имени автора
+        "link",
+        "redirect_links",
+        "short_links",
+        "redirect_numb",
+        "company_id",
     )
-    search_help_text = ('поиск по полям: Автор (по TG ID), Ссылка, Редирект ссылки, '
-                        'Сокращённые ссылки, Кол-во редиректов, ID компании(keitaro)')
+    search_help_text = (
+        "поиск по полям: Автор (по TG ID), Ссылка, Редирект ссылки, "
+        "Сокращённые ссылки, Кол-во редиректов, ID компании(keitaro)"
+    )
 
     fieldsets = [
-        ('Основная информация', {
-            'fields': ('tlg_id', 'link_set', 'link', 'redirect_numb'),
-            'classes': ('wide', 'extrapretty'),
-            'description': 'Основная информация о ссылке. Это то, что даёт нам на вход юзер.'
-        }),
-        ('Обработка KEITARO', {
-            'fields': ('company_id', 'redirect_links'),
-            'classes': ('wide', 'extrapretty'),
-            'description': 'Информация, которую получаем после обработки KEITARO. '
-                           'В поле "Редирект ссылки" ссылки должны быть указаны через пробел'
-        }),
-        ('Сервисы сокращения', {
-            'fields': ('short_link_service', 'short_links'),
-            'classes': ('wide', 'extrapretty'),
-            'description': 'Информация, которую получаем после обработки сервисом сокращения ссылок. '
-                           'В поле "Сокращённые ссылки" ссылки должны быть указаны через пробел'
-        })
+        (
+            "Основная информация",
+            {
+                "fields": ("tlg_id", "link_set", "link", "redirect_numb"),
+                "classes": ("wide", "extrapretty"),
+                "description": "Основная информация о ссылке. Это то, что даёт нам на вход юзер.",
+            },
+        ),
+        (
+            "Обработка KEITARO",
+            {
+                "fields": ("company_id", "redirect_links"),
+                "classes": ("wide", "extrapretty"),
+                "description": "Информация, которую получаем после обработки KEITARO. "
+                'В поле "Редирект ссылки" ссылки должны быть указаны через пробел',
+            },
+        ),
+        (
+            "Сервисы сокращения",
+            {
+                "fields": ("short_link_service", "short_links"),
+                "classes": ("wide", "extrapretty"),
+                "description": "Информация, которую получаем после обработки сервисом сокращения ссылок. "
+                'В поле "Сокращённые ссылки" ссылки должны быть указаны через пробел',
+            },
+        ),
     ]
 
 
@@ -134,17 +190,18 @@ class LinkSetAdmin(admin.ModelAdmin):
     """
     Регистрация в админке модели LinkSet
     """
+
     list_display = (
         "id",
-        'tlg_id',
-        'title',
-        'created_at',
+        "tlg_id",
+        "title",
+        "created_at",
     )
     list_display_links = (
         "id",
-        'tlg_id',
-        'title',
-        'created_at',
+        "tlg_id",
+        "title",
+        "created_at",
     )
 
 
@@ -153,8 +210,9 @@ class RedirectBotSettingsAdmin(admin.ModelAdmin):
     """
     Регистрация в админке модели для настроек RedirectBotSettings.
     """
-    list_display = ('key', 'value')
-    list_display_links = ('key', 'value')
+
+    list_display = ("key", "value")
+    list_display_links = ("key", "value")
 
 
 @admin.register(Payments)
@@ -162,67 +220,66 @@ class PaymentsAdmin(admin.ModelAdmin):
     """
     Регистрация в админке модели Payments.
     """
+
     list_display = (
         "id",
-        'tlg_id',
-        'pay_system_type',
-        'amount',
-        'bill_expire_at',
-        'bill_status',
-        'created_at',
-        'archived',
+        "tlg_id",
+        "pay_system_type",
+        "amount",
+        "bill_expire_at",
+        "bill_status",
+        "created_at",
+        "archived",
     )
     list_display_links = (
         "id",
-        'tlg_id',
-        'pay_system_type',
-        'amount',
-        'bill_expire_at',
-        'bill_status',
-        'created_at',
-        'archived',
+        "tlg_id",
+        "pay_system_type",
+        "amount",
+        "bill_expire_at",
+        "bill_status",
+        "created_at",
+        "archived",
     )
     search_fields = (
-        'tlg_id',
-        'pay_system_type',
-        'amount',
-        'bill_expire_at',
-        'bill_status',
-        'created_at',
+        "tlg_id",
+        "pay_system_type",
+        "amount",
+        "bill_expire_at",
+        "bill_status",
+        "created_at",
     )
-    search_help_text = 'Поиск по всем полям таблицы'
+    search_help_text = "Поиск по всем полям таблицы"
     list_filter = (
-        'tlg_id',
-        'pay_system_type',
-        'bill_status',
-        'archived',
+        "tlg_id",
+        "pay_system_type",
+        "bill_status",
+        "archived",
     )
 
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     list_display = (
-        'user',
-        'transaction_type',
-        'transaction_datetime',
-        'amount',
-        'description',
+        "user",
+        "transaction_type",
+        "transaction_datetime",
+        "amount",
+        "description",
     )
     list_display_links = (
-        'user',
-        'transaction_type',
-        'transaction_datetime',
-        'amount',
-        'description',
+        "user",
+        "transaction_type",
+        "transaction_datetime",
+        "amount",
+        "description",
     )
     search_fields = (
-        'user',
-        'transaction_type',
-        'transaction_datetime',
-        'amount',
-        'description',
+        "user",
+        "transaction_type",
+        "transaction_datetime",
+        "amount",
+        "description",
     )
-    search_help_text = 'Поиск по всем полям таблицы'
-    list_filter = (
-        'transaction_type',
-    )
+    search_help_text = "Поиск по всем полям таблицы"
+    list_filter = ("transaction_type",)

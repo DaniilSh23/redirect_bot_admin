@@ -1,6 +1,6 @@
 from django.urls import path
 
-from redirect_admin.views import TlgUserView, GetSettingsView, LinksView, LinkSetView, StartLinkWrapping, \
+from redirect_admin.views import UserDomainView, TlgUserView, GetSettingsView, LinksView, LinkSetView, StartLinkWrapping, \
     PaymentsView, ChangeBalance, GetLinkOwner, TransactionView, get_up_bot, InterfaceLanguage
 
 app_name = 'redirect_admin'
@@ -14,6 +14,8 @@ urlpatterns = [
     path('link_set/', LinkSetView.as_view(), name='link_set'),
     path('get_link_owner/', GetLinkOwner.as_view(), name='get_link_owner'),
     path('start_wrapping/', StartLinkWrapping.as_view(), name='start_wrapping'),
+    path('user_domain/<int:pk>', UserDomainView.as_view(), name='user_domain'),
+    path('user_domain/', UserDomainView.as_view(), name='user_domain'),
 
     # Пользовательские
     path('tlg_user/', TlgUserView.as_view(), name='tlg_user'),
