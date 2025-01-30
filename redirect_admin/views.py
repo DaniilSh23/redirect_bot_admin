@@ -35,8 +35,8 @@ from redirect_admin.serializers import (
     LanguageInterfaceInSerializer,
 )
 from redirect_admin.forms import UserDomainForm
-from redirect_bot_admin.redirect_admin.saga import AddUserDomainSaga
-from redirect_bot_admin.redirect_admin.services import UserDomainService
+from redirect_admin.saga import AddUserDomainSaga
+from redirect_admin.services import UserDomainService
 from redirect_bot_admin.settings import MY_LOGGER, BOT_TOKEN
 
 

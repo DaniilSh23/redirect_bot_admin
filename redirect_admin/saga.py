@@ -4,7 +4,7 @@
 
 
 from redirect_admin.services import RedirectBotSettingsService, UserDomainService
-from redirect_bot.settings.config import MY_LOGGER
+from redirect_bot_admin.settings import MY_LOGGER
 
 
 class AddUserDomainSaga:
