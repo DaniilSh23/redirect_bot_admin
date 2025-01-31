@@ -34,7 +34,7 @@ from redirect_admin.serializers import (
     TransactionSerializer,
     LanguageInterfaceInSerializer,
 )
-from redirect_admin.forms import UserDomainForm
+from redirect_admin.forms import BaseTlgIdForm, UserDomainForm
 from redirect_admin.saga import AddUserDomainSaga
 from redirect_admin.services import UserDomainService
 from redirect_bot_admin.settings import MY_LOGGER, BOT_TOKEN
@@ -739,6 +739,7 @@ class UserDomainView(View):
 
         # Достаем данные, необходимые для отображения на странице
         domain_records = UserDomainService.read_all_for_user(tlg_id=tlg_id)
+        MY_LOGGER.debug(f"domain_records --- {domain_records}")
 
         # Даем ответ на запрос
         context = {
@@ -753,7 +754,6 @@ class UserDomainView(View):
         MY_LOGGER.info(f"{request.method} запрос на UserDomainView | {request.POST}")
 
         form = UserDomainForm(request.POST)
-
         if not form.is_valid():
             MY_LOGGER.warning(f'Форма невалидна. Ошибка: {form.errors}')
             err_msgs.error(request, 'Ошибка: Вы уверены, что открыли форму из Telegram?')
@@ -767,14 +767,29 @@ class UserDomainView(View):
         if not result:
             err_msgs.error(request, 'Не удалось создать домен, возможно ошибка с ClaudFlare')
 
-        return redirect(to=reverse_lazy("redirect_admin:user_domain"))
+        redirect_url = f"{reverse_lazy('redirect_admin:user_domain')}?tlg_id={tlg_id}"
+        return redirect(to=redirect_url)
 
-    def delete(self, request: HttpRequest, pk: int):
+
+class UserDomainDeleteView(View):
+    """
+    Вьюшка для удаления записи UserDomain
+    """
+    def post(self, request: HttpRequest, pk: int):
         """
         Обработка запроса для удаления записи UserDomain
         """
         MY_LOGGER.info(f"{request.method} запрос на UserDomainView | {pk}")
+
+        form = BaseTlgIdForm(request.POST)
+        if not form.is_valid():
+            MY_LOGGER.warning(f'Форма невалидна. Ошибка: {form.errors}')
+            err_msgs.error(request, 'Ошибка: Вы уверены, что открыли форму из Telegram?')
+            return redirect(to=reverse_lazy("redirect_admin:user_domain"))
+
         user_domain = UserDomainService.read(pk=pk)
         UserDomainService.delete(record=user_domain)
-        return redirect(to=reverse_lazy("redirect_admin:user_domain"))
+        tlg_id = form.cleaned_data.get('tlg_id')
+        redirect_url = f"{reverse_lazy('redirect_admin:user_domain')}?tlg_id={tlg_id}"
+        return redirect(to=redirect_url)
 

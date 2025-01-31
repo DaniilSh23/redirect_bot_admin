@@ -23,7 +23,7 @@ class UserDomainService:
             return False
         
         try:
-            return UserDomains.objects.create(tlg_id=tlg_user, domain=domain)
+            return UserDomains.objects.create(tlg_user=tlg_user, domain=domain)
         except Exception as err:
             MY_LOGGER.warning(f"Ошибка при создании новой записи UserDomains | {err}")
 
@@ -74,12 +74,12 @@ class TlgUserService:
     Сервис для работы с моделью TlgUser
     """
     @staticmethod
-    def get_by_tlg_id(tlg_id: int):
+    def get_by_tlg_id(tlg_id):
         """
         Получение объекта TlgUser по tlg_id.
         """
         try:
-            TlgUser.objects.get(tlg_id=tlg_id)
+            return TlgUser.objects.get(tlg_id=tlg_id)
         except ObjectDoesNotExist:
             MY_LOGGER.warning(f"Не найден юзер с tlg_id == {tlg_id}")
             return None

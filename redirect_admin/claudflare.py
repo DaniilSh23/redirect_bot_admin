@@ -14,7 +14,7 @@ class ClaudFlareAgent:
 
     base_cloudflare_url = "https://api.cloudflare.com/"
 
-    def __init__(self, claudflare_email, claudlare_api_key):
+    def __init__(self, claudflare_email, claudlare_api_key, domain):
         """
         Конструктор класса.
         :param claudflare_email: str - EMAIL аккаунта Claudflare
@@ -23,6 +23,7 @@ class ClaudFlareAgent:
 
         self.claudflare_email = claudflare_email
         self.claudlare_api_key = claudlare_api_key
+        self.domain_name = domain
 
     def create_zone(self):
         """

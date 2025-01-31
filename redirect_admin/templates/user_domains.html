@@ -210,7 +210,6 @@
                       <div class="mb-3">
 
                         <div class="card">
-                          <h5 class="card-header">Table Basic</h5>
                           <div class="table-responsive text-nowrap">
                             <table class="table">
                               <thead>
@@ -224,18 +223,15 @@
 
                                 {% for record in domain_records %}
                                 
-                                <form id="delete-form-{{ record.pk }}" action="{% url 'redirect_admin:user_domain' pk=record.pk %}" method="post" style="display: none;">
+                                <form id="delete-form-{{ record.pk }}" action="{% url 'redirect_admin:user_domain_delete' pk=record.pk %}" method="post" style="display: none;">
                                     {% csrf_token %}
-                                    <input type="hidden" name="_method" value="DELETE">
+                                    <input class="my-filling-fields" type="hidden" id="tg-id-input" value="" name="tlg_id">
                                     <tr>
                                       <td>1</td>
                                       <td>{{ record.domain }}</td>
                                       <td>
                                         <div class="dropdown">
-                                          <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="icon-base bx bx-dots-vertical-rounded"></i></button>
-                                          <div class="dropdown-menu">
-                                            <a class="dropdown-item" href="#" onclick="confirmDelete({{ record.pk }})"><i class="icon-base bx bx-trash me-1"></i> Delete</a>
-                                          </div>
+                                          <a class="dropdown-item" href="#" onclick="confirmDelete({{ record.pk }})"><i class="icon-base bx bx-trash me-1"></i> Delete</a>
                                         </div>
                                       </td>
                                     </tr>
@@ -273,7 +269,6 @@
                           <div class="mb-3">
                             <label for="amount-input" class="form-label my-label">Доменное имя:</label>
                             <div class="input-group">
-                              <!-- <span class="input-group-text my-filling-fields">₽</span> -->
                               <input
                                 type="text"
                                 class="form-control my-filling-fields"
@@ -282,7 +277,6 @@
                                 name="domain"
                                 required
                               />
-                              <!-- <span class="input-group-text my-filling-fields">.00</span> -->
                             </div>
                           </div>
   
@@ -348,6 +342,13 @@
       tgObject.expand() // расширяем окно на весь экран
       tgObject.ready() // убираем индикатор загрузки вверху окна
       document.getElementById('tg-id-input').value = tgObject.initDataUnsafe.user.id;
+
+      const tlgIdElements = document.querySelectorAll('[name="tlg_id"]');
+      tlgIdElements.forEach(function (elem) {
+        // Выполнение действий с каждым элементом, устанавливаем TG ID от скрипта телеги
+        elem.value = tgObject.initDataUnsafe.user.id;
+        elem.type = "hidden";
+      });
     </script>
 
   </body>
