@@ -26,3 +26,10 @@ class UserDomainForm(BaseTlgIdForm):
         ]
     )
 
+
+class UserTransferForm(forms.Form):
+    """
+    Форма для переноса инфы юзера с одного аккаунта на другой.
+    """
+    old_tlg_id = forms.CharField()
+    new_tlg_id = forms.CharField()

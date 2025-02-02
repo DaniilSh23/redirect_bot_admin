@@ -14,6 +14,8 @@ from rest_framework.request import Request as DRFRequest
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.contrib.admin.views.decorators import staff_member_required
+from django.utils.decorators import method_decorator
 
 from redirect_admin.models import (
     TlgUser,
@@ -34,9 +36,9 @@ from redirect_admin.serializers import (
     TransactionSerializer,
     LanguageInterfaceInSerializer,
 )
-from redirect_admin.forms import BaseTlgIdForm, UserDomainForm
+from redirect_admin.forms import BaseTlgIdForm, UserDomainForm, UserTransferForm
 from redirect_admin.saga import AddUserDomainSaga
-from redirect_admin.services import UserDomainService
+from redirect_admin.services import UserDomainService, TransferUserService
 from redirect_bot_admin.settings import MY_LOGGER, BOT_TOKEN
 
 
@@ -735,18 +737,19 @@ class UserDomainView(View):
         MY_LOGGER.info(f"{request.method} запрос на UserDomainView | {request.GET}")
         tlg_id = request.GET.get("tlg_id")
         if not tlg_id:
-            return HttpResponse(status=400, content="Пожалуйста, перейдите из Telegram.")
+            return HttpResponse(
+                status=400, content="Пожалуйста, перейдите из Telegram."
+            )
 
         # Достаем данные, необходимые для отображения на странице
         domain_records = UserDomainService.read_all_for_user(tlg_id=tlg_id)
-        MY_LOGGER.debug(f"domain_records --- {domain_records}")
 
         # Даем ответ на запрос
         context = {
             "domain_records": domain_records,
         }
         return render(request, template_name="user_domains.html", context=context)
-    
+
     def post(self, request: HttpRequest):
         """
         Обработка запроса для создания записи UserDomain
@@ -755,17 +758,21 @@ class UserDomainView(View):
 
         form = UserDomainForm(request.POST)
         if not form.is_valid():
-            MY_LOGGER.warning(f'Форма невалидна. Ошибка: {form.errors}')
-            err_msgs.error(request, 'Ошибка: Вы уверены, что открыли форму из Telegram?')
+            MY_LOGGER.warning(f"Форма невалидна. Ошибка: {form.errors}")
+            err_msgs.error(
+                request, "Ошибка: Вы уверены, что открыли форму из Telegram?"
+            )
             return redirect(to=reverse_lazy("redirect_admin:user_domain"))
 
         # Забираем данные из формы и выполняем сагу на создание домена
-        tlg_id = form.cleaned_data.get('tlg_id')
-        domain = form.cleaned_data.get('domain')
+        tlg_id = form.cleaned_data.get("tlg_id")
+        domain = form.cleaned_data.get("domain")
         add_saga = AddUserDomainSaga(user_tlg_id=tlg_id, domain=domain)
         result = add_saga.create_user_domain()
         if not result:
-            err_msgs.error(request, 'Не удалось создать домен, возможно ошибка с ClaudFlare')
+            err_msgs.error(
+                request, "Не удалось создать домен, возможно ошибка с ClaudFlare"
+            )
 
         redirect_url = f"{reverse_lazy('redirect_admin:user_domain')}?tlg_id={tlg_id}"
         return redirect(to=redirect_url)
@@ -775,6 +782,7 @@ class UserDomainDeleteView(View):
     """
     Вьюшка для удаления записи UserDomain
     """
+
     def post(self, request: HttpRequest, pk: int):
         """
         Обработка запроса для удаления записи UserDomain
@@ -783,13 +791,62 @@ class UserDomainDeleteView(View):
 
         form = BaseTlgIdForm(request.POST)
         if not form.is_valid():
-            MY_LOGGER.warning(f'Форма невалидна. Ошибка: {form.errors}')
-            err_msgs.error(request, 'Ошибка: Вы уверены, что открыли форму из Telegram?')
+            MY_LOGGER.warning(f"Форма невалидна. Ошибка: {form.errors}")
+            err_msgs.error(
+                request, "Ошибка: Вы уверены, что открыли форму из Telegram?"
+            )
             return redirect(to=reverse_lazy("redirect_admin:user_domain"))
 
         user_domain = UserDomainService.read(pk=pk)
         UserDomainService.delete(record=user_domain)
-        tlg_id = form.cleaned_data.get('tlg_id')
+        tlg_id = form.cleaned_data.get("tlg_id")
         redirect_url = f"{reverse_lazy('redirect_admin:user_domain')}?tlg_id={tlg_id}"
         return redirect(to=redirect_url)
 
+
+@method_decorator(staff_member_required, name="dispatch")
+class TransferUsersView(View):
+    """
+    Вьюшка для перемещения баланса, ссылок и прочего с одного аккаунта пользователя на другой.
+    """
+
+    def get(self, request: HttpRequest) -> HttpResponse:
+        """
+        Рендерим страницу для перемещения аккаунтов.
+        """
+        MY_LOGGER.info(f"{request.method} запрос на TransferUsersView | {request.GET}")
+        return render(request, template_name="transfer_users.html")
+
+    def post(self, request: HttpRequest) -> HttpResponse:
+        """
+        Выполняем перемещение данных с одного аккаунта на другой.
+        """
+        MY_LOGGER.info(f"{request.method} запрос на TransferUsersView | {request.POST}")
+
+        # Валидация данных формы
+        form = UserTransferForm(request.POST)
+        if not form.is_valid():
+            MY_LOGGER.warning(f"Форма невалидна. Ошибка: {form.errors}")
+            err_msgs.error(
+                request, "Ошибка: невалидные данные формы"
+            )
+            return redirect(to=reverse_lazy("redirect_admin:transfer_users"))
+
+        old_tlg_id = form.cleaned_data.get("old_tlg_id")
+        new_tlg_id = form.cleaned_data.get("new_tlg_id")
+
+        # Вызов логики трансфера аккаунтов
+        result = TransferUserService.transfer(old_tlg_id=old_tlg_id, new_tlg_id=new_tlg_id)
+        if not result:
+            MY_LOGGER.warning(f"Не удалось выполнить перенос данных между аккаунтами old_tlg_id=={form.old_tlg_id} и new_tlg_id=={form.new_tlg_id}")
+            err_msgs.error(
+                request, "Ошибка: невалидные данные формы"
+            )
+            return redirect(to=reverse_lazy("redirect_admin:transfer_users"))
+
+        context = {
+            "header_text": "Успешно",
+            "header_description": f"Перенос данных с аккаунта {old_tlg_id} на аккаунт {new_tlg_id} выполнен успешно.",
+            "button_text": "Окей",
+        }
+        return render(request, template_name="success.html", context=context)

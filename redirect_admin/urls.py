@@ -1,7 +1,7 @@
 from django.urls import path
 
 from redirect_admin.views import UserDomainView, TlgUserView, GetSettingsView, LinksView, LinkSetView, StartLinkWrapping, \
-    PaymentsView, ChangeBalance, GetLinkOwner, TransactionView, get_up_bot, InterfaceLanguage, UserDomainDeleteView
+    PaymentsView, ChangeBalance, GetLinkOwner, TransactionView, get_up_bot, InterfaceLanguage, UserDomainDeleteView, TransferUsersView
 
 app_name = 'redirect_admin'
 
@@ -28,4 +28,5 @@ urlpatterns = [
 
     # Управление ботом
     path('get_up_bot/', get_up_bot, name='get_up_bot'),
+    path('transfer_users/', TransferUsersView.as_view(), name='transfer_users'),
 ]
