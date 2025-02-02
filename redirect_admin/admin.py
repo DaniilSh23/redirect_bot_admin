@@ -106,12 +106,16 @@ class UserDomainsAdmin(admin.ModelAdmin):
         "id",
         "tlg_user",
         "domain",
+        "keitaro_id",
+        "claudflare_id",
         "created_at",
     )
     list_display_links = (
         "id",
         "tlg_user",
         "domain",
+        "keitaro_id",
+        "claudflare_id",
         "created_at",
     )
 

@@ -68,6 +68,8 @@ class UserDomains(models.Model):
         verbose_name="Автор", to=TlgUser, on_delete=models.CASCADE
     )
     domain = models.URLField(verbose_name="Домен", max_length=200)
+    keitaro_id = models.CharField(verbose_name="ID в KEITARO", blank=True, default="", max_length=6)
+    claudflare_id = models.CharField(verbose_name="ID в ClaudFlare", blank=True, default="", max_length=50)
     created_at = models.DateTimeField(
         verbose_name="Дата и время создания", auto_now_add=True
     )
@@ -134,6 +136,7 @@ class Links(models.Model):
         ("gg.gg", "gg.gg"),
         ("t9y.me", "t9y.me"),
         ("custom_domain", "custom_domain"),
+        ("user_domain", "user_domain"),
     )
 
     tlg_id = models.ForeignKey(
