@@ -7,6 +7,7 @@ from celery import shared_task
 from loguru import logger
 
 from redirect_admin.models import LinkSet, Links, RedirectBotSettings, Transaction, TlgUser
+from redirect_admin.services import UserDomainService
 from redirect_bot_admin.settings import MY_LOGGER
 
 
@@ -20,6 +21,7 @@ def wrap_links_in_redirect(link_set_id):
     """
     # Получаем набор ссылок и отфильтровываем ссылки, которые в него входят
     link_set_obj = LinkSet.objects.get(id=link_set_id)
+    bot_user = link_set_obj.tlg_id
     links_lst = Links.objects.filter(link_set=link_set_obj)
     tariff = RedirectBotSettings.objects.get(key='tariff').value
 
@@ -62,6 +64,7 @@ def wrap_links_in_redirect(link_set_id):
                 link_to_short=k_redirect_link,
                 # user pk,link_set pk, link pk, sequence_numb
                 alias=hash_for_link,
+                bot_user=bot_user,
             )  # Запрос к сервису сокращалок
 
             if not k_short_link:  # Обработка неудачного запроса к сервису сокращения ссылок
@@ -173,7 +176,7 @@ def create_company_in_keitaro(alias, link, domain_id=1, group_id=4):
     return redirect_link, company_id, response
 
 
-def link_shortening(service_name, link_to_short, alias):
+def link_shortening(service_name, link_to_short, alias, bot_user=None):
     """
     Функция для сокращения ссылок.
     Принимает параметры:
@@ -296,11 +299,29 @@ def link_shortening(service_name, link_to_short, alias):
         else:
             logger.warning(f'Неудачный запрос к кейтаро для сокращения ссылок. Ссылка: {link_to_short}')
             return False
-        
-    elif service_name == "users_domain":    # Личные домены пользователя
-        # TODO: дописать логику по использованию пользователем ранее добавленных доменов
-        # TODO: если доменов у юзера нет, то выкидываем отсюда False
-        return False
+    
+    # Личные домены пользователя
+    elif service_name == "users_domain":
+        user_domains_lst = UserDomainService.read_all_for_user(tlg_id=bot_user.tlg_id)
+        if not user_domains_lst:
+            logger.warning(f'В БД нет ссылок для юзера {bot_user}. Ссылка: {link_to_short} | Сервис сокращения: {service_name}')
+            return False
+        random_domain = random.choice(list(user_domains_lst))
+
+        # Выполняем запрос к кейтаро на создание компании с кастомными ссылками
+        keitaro_answer = create_company_in_keitaro(
+            alias=alias,
+            link=link_to_short,
+            domain_id=random_domain.keitaro_id,
+            group_id=6,     # ID группы в кеиатро для сокращалок
+        )
+        # Проверка, что запрос к кейтаро был успешным
+        if keitaro_answer:
+            response = keitaro_answer[2]
+            short_lnk = keitaro_answer[0]
+        else:
+            logger.warning(f'Неудачный запрос к кейтаро для сокращения ссылок. Ссылка: {link_to_short}')
+            return False
 
     else:  # Иначе, если service_name не определён
         logger.warning(f'Не определён сервис для сокращения ссылок. service_name=={service_name}')
