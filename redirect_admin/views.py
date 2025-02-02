@@ -838,9 +838,9 @@ class TransferUsersView(View):
         # Вызов логики трансфера аккаунтов
         result = TransferUserService.transfer(old_tlg_id=old_tlg_id, new_tlg_id=new_tlg_id)
         if not result:
-            MY_LOGGER.warning(f"Не удалось выполнить перенос данных между аккаунтами old_tlg_id=={form.old_tlg_id} и new_tlg_id=={form.new_tlg_id}")
+            MY_LOGGER.warning(f"Не удалось выполнить перенос данных между аккаунтами old_tlg_id=={old_tlg_id} и new_tlg_id=={new_tlg_id}")
             err_msgs.error(
-                request, "Ошибка: невалидные данные формы"
+                request, "Ошибка: неверные TELEGRAM ID."
             )
             return redirect(to=reverse_lazy("redirect_admin:transfer_users"))
 

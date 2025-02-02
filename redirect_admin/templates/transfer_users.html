@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<!-- =========================================================
+* Sneat - Bootstrap 5 HTML Admin Template - Pro | v1.0.0
+==============================================================
+
+* Product Page: https://themeselection.com/products/sneat-bootstrap-html-admin-template/
+* Created by: ThemeSelection
+* License: You must have a valid license purchased in order to legally use the theme for your project.
+* Copyright ThemeSelection (https://themeselection.com)
+
+=========================================================
+ -->
+<!-- beautify ignore:start -->
+<html
+  lang="ru"
+  class="light-style layout-menu-fixed"
+  dir="ltr"
+  data-theme="theme-default"
+  data-assets-path="/static/lawyer_bot/site_donor/assets/"
+  data-template="vertical-menu-template-free"
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+    />
+
+    <title>Мои домены</title>
+
+    <meta name="description" content="" />
+
+    <!--скрипт telegram-->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/lawyer_bot/site_donor/assets/img/favicon/favicon.ico" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Icons. Uncomment required icon fonts -->
+    <link rel="stylesheet" href="/static/lawyer_bot/site_donor/assets/vendor/fonts/boxicons.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="/static/lawyer_bot/site_donor/assets/vendor/css/core.css" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="/static/lawyer_bot/site_donor/assets/vendor/css/theme-default.css" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="/static/lawyer_bot/site_donor/assets/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="/static/lawyer_bot/site_donor/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+
+    <!-- Page CSS -->
+
+    <!-- Helpers -->
+    <script src="/static/lawyer_bot/site_donor/assets/vendor/js/helpers.js"></script>
+
+    <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
+    <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
+    <script src="/static/lawyer_bot/site_donor/assets/js/config.js"></script>
+
+    <style>
+        body{
+            color: var(--tg-theme-text-color);
+            background: var(--tg-theme-secondary-bg-color);
+        }
+        .my-filling-fields{
+            background-color: var(--tg-theme-secondary-bg-color);
+            border-color: var(--tg-theme-secondary-bg-color);
+            color: var(--tg-theme-text-color);
+        }
+        .my-filling-fields:focus {
+          color: var(--tg-theme-text-color);
+          background-color: var(--tg-theme-secondary-bg-color);
+          border-color: var(--tg-theme-button-color);
+          outline: 0;
+          box-shadow: 0 0 0.25rem 0.05rem rgba(105, 108, 255, 0.1);
+        }
+        .my-filling-fields::-webkit-file-upload-button {
+          padding: 0.4375rem 0.875rem;
+          margin: -0.4375rem -0.875rem;
+          -webkit-margin-end: 0.875rem;
+              margin-inline-end: 0.875rem;
+          color: var(--tg-theme-text-color);
+          background-color: var(--tg-theme-secondary-bg-color);
+          pointer-events: none;
+          border-color: var(--tg-theme-secondary-bg-color);
+          border-style: solid;
+          border-width: 0;
+          border-inline-end-width: 1px;
+          border-radius: 0;
+          -webkit-transition: all 0.2s ease-in-out;
+          transition: all 0.2s ease-in-out;
+        }
+        .my-form-border{
+            color: var(--tg-theme-text-color);
+        }
+        .my-form-area{
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+        }
+        .my-btn-clr{
+            background-color: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+        }
+        .my-label{
+            color: var(--tg-theme-text-color);
+        }
+        input[type="file"]:focus::file-selector-button {
+            background-color: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+        }
+        .form-control[readonly] {
+            background-color: var(--tg-theme-secondary-bg-color);
+            opacity: 1;
+        }
+    </style>
+
+<!--    <style>-->
+<!--        body{-->
+<!--            color: blue;-->
+<!--            background: green;-->
+<!--        }-->
+<!--        .my-form-border{-->
+<!--            background-color: green;-->
+<!--        }-->
+<!--        .my-form-area{-->
+<!--            background-color: pink;-->
+<!--        }-->
+<!--        .my-filling-fields{-->
+<!--            background-color: red;-->
+<!--            color: green;-->
+<!--        }-->
+<!--        .my-filling-fields:focus {-->
+<!--          color: orange;-->
+<!--          background-color: yellow;-->
+<!--          border-color: rgba(249, 249, 255, 0.54);-->
+<!--          outline: 0;-->
+<!--          box-shadow: 0 0 0.25rem 0.05rem rgba(105, 108, 255, 0.1);-->
+<!--        }-->
+<!--        .my-filling-fields::-webkit-file-upload-button {-->
+<!--          padding: 0.4375rem 0.875rem;-->
+<!--          margin: -0.4375rem -0.875rem;-->
+<!--          -webkit-margin-end: 0.875rem;-->
+<!--              margin-inline-end: 0.875rem;-->
+<!--          color: black;-->
+<!--          background-color: violet;-->
+<!--          pointer-events: none;-->
+<!--          border-color: inherit;-->
+<!--          border-style: solid;-->
+<!--          border-width: 0;-->
+<!--          border-inline-end-width: 1px;-->
+<!--          border-radius: 0;-->
+<!--          -webkit-transition: all 0.2s ease-in-out;-->
+<!--          transition: all 0.2s ease-in-out;-->
+<!--        }-->
+<!--        .my-input-readonly {-->
+<!--            background-color: orange; /* Цвет фона для readonly */-->
+<!--            border-color: red;-->
+<!--            color: pink; /* Цвет текста для readonly */-->
+<!--        }-->
+
+<!--        .my-input-readonly:focus {-->
+<!--            background-color: yellow; /* Цвет фона для readonly при фокусе */-->
+<!--            border-color: rgba(249, 249, 255, 0.54); /* Цвет границы для readonly при фокусе */-->
+<!--            color: yellow; /* Цвет текста для readonly при фокусе */-->
+<!--            outline: 0;-->
+<!--            box-shadow: none;-->
+<!--        }-->
+<!--        .form-control[readonly] {-->
+<!--          background-color: blue;-->
+<!--          opacity: 1;-->
+<!--        }-->
+<!--    </style>-->
+
+  </head>
+
+  <body>
+
+    <!-- Layout wrapper -->
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <!-- Layout container -->
+        <div class="layout-page">
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <!-- Content -->
+
+            <div class="container-xxl flex-grow-1 container-p-y">
+              <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Меню /</span> Перенос аккаунтов</h4>
+
+              <!-- Основная часть -->
+              <div class="row border-success">
+
+                <div class="col-md-6 my-form-border">
+                  <div class="card mb-4 my-form-area">
+
+                    <h5 class="card-header">🔄 Перенос аккаунтов</h5>
+                    <hr class="my-0">
+
+                    <div class="card-body">
+
+                    <!--Форма-->
+                    <div class="card-body">
+
+                        <form id="applicationForm" method="post" action="{% url 'redirect_admin:transfer_users' %}" enctype="multipart/form-data">
+                          {% csrf_token %}
+                          {% if messages %}
+                            <ul class="messages">
+                                {% for message in messages %}
+                                <li
+                                        {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+  
+                          <div class="mb-3">
+                            <label for="amount-input" class="form-label my-label">Telegram ID старого аккаунта:</label>
+                            <div class="input-group">
+                              <input
+                                type="text"
+                                class="form-control my-filling-fields"
+                                placeholder="123456789"
+                                name="old_tlg_id"
+                                required
+                              />
+                            </div>
+                            <label for="amount-input" class="form-label my-label">Telegram ID нового аккаунта</label>
+                            <div class="input-group">
+                              <input
+                                type="text"
+                                class="form-control my-filling-fields"
+                                placeholder="987654321"
+                                name="new_tlg_id"
+                                required
+                              />
+                            </div>
+                          </div>
+  
+                          <div class="mb-3">
+                            <button id="createButton" type="submit" class="btn rounded-pill btn-info my-btn-clr" style="width:100%">🔄 Перенести</button>
+                          </div>
+  
+                        </form>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <!-- / Content -->
+
+            <div class="content-backdrop fade"></div>
+          </div>
+          <!-- Content wrapper -->
+        </div>
+        <!-- / Layout page -->
+      </div>
+
+      <!-- Overlay -->
+      <div class="layout-overlay layout-menu-toggle"></div>
+    </div>
+    <!-- / Layout wrapper -->
+
+    <!-- Core JS -->
+    <!-- build:js assets/vendor/js/core.js -->
+    <script src="/static/lawyer_bot/site_donor/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/lawyer_bot/site_donor/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/lawyer_bot/site_donor/assets/vendor/js/bootstrap.js"></script>
+    <script src="/static/lawyer_bot/site_donor/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+
+    <script src="/static/lawyer_bot/site_donor/assets/vendor/js/menu.js"></script>
+    <!-- endbuild -->
+
+    <!-- Vendors JS -->
+
+    <!-- Main JS -->
+    <script src="/static/lawyer_bot/site_donor/assets/js/main.js"></script>
+
+    <!-- Page JS -->
+    <script src="/static/lawyer_bot/site_donor/assets/js/form-basic-inputs.js"></script>
+
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+    <!-- Скрипт для обработки нажатия кнопки удаления записи -->
+    <script>
+        function confirmDelete(pk) {
+            if (confirm("Вы уверены, что хотите удалить эту запись?")) {
+                document.getElementById(`delete-form-${pk}`).submit();
+            }
+        }
+    </script>
+
+    <!-- скрипт для работы с данными от телеги-->
+    <script>
+      var tgObject = window.Telegram.WebApp;
+      tgObject.expand() // расширяем окно на весь экран
+      tgObject.ready() // убираем индикатор загрузки вверху окна
+      document.getElementById('tg-id-input').value = tgObject.initDataUnsafe.user.id;
+
+      const tlgIdElements = document.querySelectorAll('[name="tlg_id"]');
+      tlgIdElements.forEach(function (elem) {
+        // Выполнение действий с каждым элементом, устанавливаем TG ID от скрипта телеги
+        elem.value = tgObject.initDataUnsafe.user.id;
+        elem.type = "hidden";
+      });
+    </script>
+
+  </body>
+</html>
