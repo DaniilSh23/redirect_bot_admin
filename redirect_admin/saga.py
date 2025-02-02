@@ -58,6 +58,8 @@ class AddUserDomainSaga:
             keitaro_agent.delete_domain(domain_keitaro_id=self.user_domain_obj.keitaro_id)
             UserDomainService.delete(record=self.user_domain_obj)
             return False
+        self.user_domain_obj.claudflare_id = claud_agent.new_zone_id
+        self.user_domain_obj.save()
         
         # Устанавливаем DNS запись для новой зоны (домена)
         if not claud_agent.set_dns_for_new_zone(ip_for_a_record=ip_for_a_record):

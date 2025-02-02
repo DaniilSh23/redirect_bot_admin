@@ -12,6 +12,7 @@ class ClaudFlareAgent:
     Класс, который реализует логику взаимодействия с API ClaudFlare.
     """
 
+    new_zone_id = ""
     base_cloudflare_url = "https://api.cloudflare.com/"
 
     def __init__(self, claudflare_email, claudlare_api_key, domain):
