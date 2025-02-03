@@ -4,6 +4,7 @@
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
+from django.db import transaction
 from redirect_admin.models import LinkSet, Links, Payments, RedirectBotSettings, TlgUser, Transaction, UserDomains
 from redirect_bot_admin.settings import MY_LOGGER
 
@@ -105,12 +106,17 @@ class TransferUserService:
             MY_LOGGER.warning(f"Перенос данных аккаунтов не удался. Не найден юзер с tlg_id == {old_tlg_id}")
             return False
 
-        TransferUserService.transfer_links(old_user, new_user)
-        TransferUserService.transfer_links_set(old_user, new_user)
-        TransferUserService.transfer_transaction(old_user, new_user)
-        TransferUserService.transfer_payments(old_user, new_user)
-        TransferUserService.transfer_user_domains(old_user, new_user)
-        TransferUserService.transfer_tlg_acc_data(old_user, new_user)
+        try:
+            with transaction.atomic():
+                TransferUserService.transfer_links(old_user, new_user)
+                TransferUserService.transfer_links_set(old_user, new_user)
+                TransferUserService.transfer_transaction(old_user, new_user)
+                TransferUserService.transfer_payments(old_user, new_user)
+                TransferUserService.transfer_user_domains(old_user, new_user)
+                TransferUserService.transfer_tlg_acc_data(old_user, new_user)
+        except Exception as err:
+            MY_LOGGER.warning(f"Перенос данных аккаунтов не удался. Ошибка: {err}")
+            return False
 
         return True
 
@@ -163,3 +169,5 @@ class TransferUserService:
         new_user.balance = old_user.balance
         new_user.interface_language = old_user.interface_language
         new_user.save()
+        old_user.balance = 0
+        old_user.save()
