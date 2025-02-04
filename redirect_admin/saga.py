@@ -27,6 +27,7 @@ class AddUserDomainSaga:
         Создание домена пользователя. Возвращает флаг успешности выполнения саги.
         """
 
+
         # Создаем в БД запись с новым доменом юзера
         self.user_domain_obj = UserDomainService.create(user_tlg_id=self.user_tlg_id, domain=self.domain)
         if not self.user_domain_obj:
@@ -68,6 +69,8 @@ class AddUserDomainSaga:
             keitaro_agent.delete_domain(domain_keitaro_id=self.user_domain_obj.keitaro_id)
             UserDomainService.delete(record=self.user_domain_obj)
             return False
+        self.user_domain_obj.claudflare_zone_dns_id = claud_agent.new_zone_dns_record_id
+        self.user_domain_obj.save()
         
         return True
 
@@ -97,20 +100,26 @@ class DeleteUserDomainSaga:
             MY_LOGGER.warning(self.err_msg)
             return False
 
-        # Удаление домена из кейтаро
+        # Удаление домена в кейтаро
         keitaro_agent = KeitaroAgent()
-        res = keitaro_agent.delete_domain(domain_keitaro_id=user_domain.keitaro_id)
+        res = keitaro_agent.delete_domain(domain_keitaro_id=user_domain.keitaro_id)     # Удаление домена в архив
         if not res:
             MY_LOGGER.warning(self.err_msg)
             return False
 
-        # Удаление домена из ClaudFlare
+        # Удаление DNS записи домена (zone) из ClaudFlare
         claud_agent = ClaudFlareAgent(claudflare_email=claudflare_email, claudlare_api_key=claudlare_api_key)
+        claud_agent.delete_zone_dns_record(domain_id=user_domain.claudflare_id, dns_record_id=user_domain.claudflare_zone_dns_id)
+        if not res:
+            MY_LOGGER.warning(self.err_msg)
+            return False
+
+        # Удаление домена (zone) из ClaudFlare
         res = claud_agent.delete_zone(domain_id=user_domain.claudflare_id)
         if not res:
             MY_LOGGER.warning(self.err_msg)
             return False
-
+        
         # Удаление из БД
         UserDomainService.delete(record=user_domain)
         return True

@@ -81,6 +81,12 @@ class ClaudFlareAgent:
                 f"Не удалось добавить DNS А-запись в новую зону ClaudFlare. Ответ: status == {response.status_code} | {response.json()}"
             )
             return False
+        json_resp = response.json()
+
+        claud_result = json_resp.get("result")
+        if claud_result:
+            self.new_zone_dns_record_id = claud_result.get("id")
+            return True
         
         return True
     
@@ -100,6 +106,26 @@ class ClaudFlareAgent:
         if response.status_code != 200:
             MY_LOGGER.warning(
                 f"Не удалось удалить зону (домен) в ClaudFlare. | domain_id=={domain_id} | Ответ: status == {response.status_code} | {response.json()}"
+            )
+            return False
+        
+        return True
+    
+    def delete_zone_dns_record(self, domain_id, dns_record_id):
+        """
+        Удаление DNS записи домена (зоны)
+        """
+        req_url = f"{self.base_cloudflare_url}client/v4/zones/{domain_id}/dns_records/{dns_record_id}"
+        req_headers = {
+            "X-Auth-Email": self.claudflare_email,
+            "X-Auth-Key": self.claudlare_api_key,
+        }
+
+        response = requests.delete(url=req_url, headers=req_headers)
+
+        if response.status_code != 200:
+            MY_LOGGER.warning(
+                f"Не удалось удалить DNS запись зоны (домена) в ClaudFlare. | domain_id=={domain_id}, dns_record_id=={dns_record_id} | Ответ: status == {response.status_code} | {response.json()}"
             )
             return False
         

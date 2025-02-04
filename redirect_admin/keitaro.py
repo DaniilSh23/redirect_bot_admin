@@ -65,7 +65,9 @@ class KeitaroAgent:
         """
         req_url = f"{self.keitaro_api_address}domains/{domain_keitaro_id}"
         response = requests.delete(url=req_url, headers=self.headers)
-        if response.status_code >= 400:
+        if response.status_code != 200:
             MY_LOGGER.warning(f"Неудачный запрос к API Keitaro для удаления домена | {response.status_code} | {response.json()}")
             return False
+        MY_LOGGER.success(f"Успешный запрос к API Keitaro для удаления домена")
         return True
+    

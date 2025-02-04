@@ -108,6 +108,7 @@ class UserDomainsAdmin(admin.ModelAdmin):
         "domain",
         "keitaro_id",
         "claudflare_id",
+        "claudflare_zone_dns_id",
         "created_at",
     )
     list_display_links = (
@@ -116,6 +117,7 @@ class UserDomainsAdmin(admin.ModelAdmin):
         "domain",
         "keitaro_id",
         "claudflare_id",
+        "claudflare_zone_dns_id",
         "created_at",
     )
 

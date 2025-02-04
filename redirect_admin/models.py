@@ -70,6 +70,7 @@ class UserDomains(models.Model):
     domain = models.URLField(verbose_name="Домен", max_length=200)
     keitaro_id = models.CharField(verbose_name="ID в KEITARO", blank=True, default="", max_length=6)
     claudflare_id = models.CharField(verbose_name="ID в ClaudFlare", blank=True, default="", max_length=50)
+    claudflare_zone_dns_id = models.CharField(verbose_name="ID DNS в ClaudFlare", blank=True, default="", max_length=50)
     created_at = models.DateTimeField(
         verbose_name="Дата и время создания", auto_now_add=True
     )

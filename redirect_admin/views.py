@@ -773,7 +773,7 @@ class UserDomainView(View):
         result = add_saga.create_user_domain()
         if not result:
             err_msgs.error(
-                request, "Не удалось создать домен, возможно ошибка с ClaudFlare"
+                request, "Не удалось создать домен, проблема интеграции со сторонним сервисом."
             )
 
         redirect_url = f"{reverse_lazy('redirect_admin:user_domain')}?tlg_id={tlg_id}"
