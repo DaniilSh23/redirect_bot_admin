@@ -37,7 +37,7 @@ from redirect_admin.serializers import (
     LanguageInterfaceInSerializer,
 )
 from redirect_admin.forms import BaseTlgIdForm, UserDomainForm, UserTransferForm
-from redirect_admin.saga import AddUserDomainSaga
+from redirect_admin.saga import AddUserDomainSaga, DeleteUserDomainSaga
 from redirect_admin.services import RedirectBotSettingsService, UserDomainService, TransferUserService
 from redirect_bot_admin.settings import MY_LOGGER, BOT_TOKEN
 
@@ -789,7 +789,7 @@ class UserDomainDeleteView(View):
         """
         Обработка запроса для удаления записи UserDomain
         """
-        MY_LOGGER.info(f"{request.method} запрос на UserDomainView | {pk}")
+        MY_LOGGER.info(f"{request.method} запрос на UserDomainDeleteView | {pk}")
 
         form = BaseTlgIdForm(request.POST)
         if not form.is_valid():
@@ -798,10 +798,15 @@ class UserDomainDeleteView(View):
                 request, "Ошибка: Вы уверены, что открыли форму из Telegram?"
             )
             return redirect(to=reverse_lazy("redirect_admin:user_domain"))
-
-        user_domain = UserDomainService.read(pk=pk)
-        UserDomainService.delete(record=user_domain)
+        
         tlg_id = form.cleaned_data.get("tlg_id")
+        saga = DeleteUserDomainSaga(user_tlg_id=tlg_id, domain_pk=pk)
+        res = saga.delete_user_domain()
+        if not res:
+            err_msgs.error(
+                request, "Ошибка: Не удалось удалить домен"
+            )
+
         redirect_url = f"{reverse_lazy('redirect_admin:user_domain')}?tlg_id={tlg_id}"
         return redirect(to=redirect_url)
 

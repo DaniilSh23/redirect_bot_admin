@@ -26,6 +26,7 @@ class AddUserDomainSaga:
         """
         Создание домена пользователя. Возвращает флаг успешности выполнения саги.
         """
+
         # Создаем в БД запись с новым доменом юзера
         self.user_domain_obj = UserDomainService.create(user_tlg_id=self.user_tlg_id, domain=self.domain)
         if not self.user_domain_obj:
@@ -68,4 +69,48 @@ class AddUserDomainSaga:
             UserDomainService.delete(record=self.user_domain_obj)
             return False
         
+        return True
+
+
+class DeleteUserDomainSaga:
+    """
+    Сага для удаления домена пользователя.
+    """
+    err_msg = "Ошибка при выполнении саги удаления домена пользователя"
+    
+    def __init__(self, user_tlg_id: int, domain_pk: int):
+        """
+        Конструктор для класса саги.
+        """
+        self.user_tlg_id = user_tlg_id
+        self.domain_pk = domain_pk
+
+    def delete_user_domain(self) -> bool:
+        """
+        Сага для удаления домена юзера
+        """
+        # Получение объекта домена и иных данных
+        user_domain = UserDomainService.read(pk=self.domain_pk)
+        claudflare_email = RedirectBotSettingsService.read(key="claudflare_email")
+        claudlare_api_key = RedirectBotSettingsService.read(key="claudlare_api_key")
+        if not user_domain or not claudflare_email or not claudlare_api_key:
+            MY_LOGGER.warning(self.err_msg)
+            return False
+
+        # Удаление домена из кейтаро
+        keitaro_agent = KeitaroAgent()
+        res = keitaro_agent.delete_domain(domain_keitaro_id=user_domain.keitaro_id)
+        if not res:
+            MY_LOGGER.warning(self.err_msg)
+            return False
+
+        # Удаление домена из ClaudFlare
+        claud_agent = ClaudFlareAgent(claudflare_email=claudflare_email, claudlare_api_key=claudlare_api_key)
+        res = claud_agent.delete_zone(domain_id=user_domain.claudflare_id)
+        if not res:
+            MY_LOGGER.warning(self.err_msg)
+            return False
+
+        # Удаление из БД
+        UserDomainService.delete(record=user_domain)
         return True

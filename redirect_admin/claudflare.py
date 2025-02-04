@@ -15,7 +15,7 @@ class ClaudFlareAgent:
     new_zone_id = ""
     base_cloudflare_url = "https://api.cloudflare.com/"
 
-    def __init__(self, claudflare_email, claudlare_api_key, domain):
+    def __init__(self, claudflare_email, claudlare_api_key, domain=None):
         """
         Конструктор класса.
         :param claudflare_email: str - EMAIL аккаунта Claudflare
@@ -79,6 +79,27 @@ class ClaudFlareAgent:
         if response.status_code != 200:
             MY_LOGGER.warning(
                 f"Не удалось добавить DNS А-запись в новую зону ClaudFlare. Ответ: status == {response.status_code} | {response.json()}"
+            )
+            return False
+        
+        return True
+    
+    def delete_zone(self, domain_id):
+        """
+        Удаление домена (зоны)
+        """
+        req_url = f"{self.base_cloudflare_url}client/v4/zones/{domain_id}"
+        req_headers = {
+            "Content-Type": "application/json",
+            "X-Auth-Email": self.claudflare_email,
+            "X-Auth-Key": self.claudlare_api_key,
+        }
+
+        response = requests.delete(url=req_url, headers=req_headers)
+
+        if response.status_code != 200:
+            MY_LOGGER.warning(
+                f"Не удалось удалить зону (домен) в ClaudFlare. | domain_id=={domain_id} | Ответ: status == {response.status_code} | {response.json()}"
             )
             return False
         

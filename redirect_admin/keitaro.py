@@ -64,8 +64,8 @@ class KeitaroAgent:
         Удаление домена в keitaro. Возвращает булевое значение, как флаг успешно ли было удаление
         """
         req_url = f"{self.keitaro_api_address}domains/{domain_keitaro_id}"
-        response = requests.post(url=req_url, headers=self.headers)
+        response = requests.delete(url=req_url, headers=self.headers)
         if response.status_code >= 400:
-            MY_LOGGER.warning("Неудачный запрос к API Keitaro для создания нового домена")
+            MY_LOGGER.warning(f"Неудачный запрос к API Keitaro для удаления домена | {response.status_code} | {response.json()}")
             return False
         return True
