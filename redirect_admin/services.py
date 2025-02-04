@@ -166,7 +166,7 @@ class TransferUserService:
         """
         Перенос данных в боте (баланс и т.д.) между аккаунтами
         """
-        new_user.balance = old_user.balance
+        new_user.balance += old_user.balance
         new_user.interface_language = old_user.interface_language
         new_user.save()
         old_user.balance = 0

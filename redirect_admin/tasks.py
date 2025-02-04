@@ -282,6 +282,16 @@ def link_shortening(service_name, link_to_short, alias, bot_user=None):
             return False
         short_lnk = searched_tag.get('value')
 
+    elif service_name == "cleanuri.com":
+        req_url = "https://cleanuri.com/api/v1/shorten"
+        req_data = {"url": link_to_short}
+        MY_LOGGER.debug(f"Выполняем запрос | req_url: {req_url!r} | req_data: {req_data!r}")
+        response = requests.post(req_url, data=req_data)
+        if response.status_code != 200:
+            MY_LOGGER.warning(f"Неудачный запрос к сервису сокращения ссылок: {service_name}")
+            return False                          
+        short_lnk = response.json().get("result_url")
+
     elif service_name == 'custom_domain':
         # Получаем список ID доменов
         domains_lst = RedirectBotSettings.objects.get(key='my_domains').value.split()
