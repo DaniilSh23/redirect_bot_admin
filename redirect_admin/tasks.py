@@ -7,7 +7,7 @@ from celery import shared_task
 from loguru import logger
 
 from redirect_admin.models import LinkSet, Links, RedirectBotSettings, Transaction, TlgUser
-from redirect_admin.services import UserDomainService
+from redirect_admin.services import RedirectBotSettingsService, UserDomainService
 from redirect_bot_admin.settings import MY_LOGGER
 
 
@@ -237,17 +237,33 @@ def link_shortening(service_name, link_to_short, alias, bot_user=None):
         short_lnk = response.json().get('data').get('shortUrl')
 
     elif service_name == "kurl.ru":
-        url = "https://kurl.ru/shorten"
-        payload = ("-----011000010111000001101001\r\nContent-Disposition: form-data; "
-                   f"name=\"url\"\r\n\r\n{link_to_short}\r\n-----011000010111000001101001--\r\n")
+        # url = "https://kurl.ru/shorten"
+        # payload = ("-----011000010111000001101001\r\nContent-Disposition: form-data; "
+        #            f"name=\"url\"\r\n\r\n{link_to_short}\r\n-----011000010111000001101001--\r\n")
+        # headers = {
+        #     "cookie": "PHPSESSID=4ce6688ddcbf5be5a019499d05aca739",
+        #     "Content-Type": "multipart/form-data; boundary=---011000010111000001101001",
+        #     "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/110.0",
+        # }
+
+        kurl_api_token = RedirectBotSettingsService.read(key="kurl_api_key")
+        if not kurl_api_token:
+            MY_LOGGER.error(f"Не удалось сократить ссылку через {service_name}. Отсутствует ключ настроек kurl_api_key")
+            return False
+        
+        req_url = "https://kurl.ru/api/url/add"
         headers = {
-            "cookie": "PHPSESSID=4ce6688ddcbf5be5a019499d05aca739",
-            "Content-Type": "multipart/form-data; boundary=---011000010111000001101001",
-            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/110.0",
+            "Authorization": f"Bearer {kurl_api_token}",
+            "Content-Type": "application/json"
         }
-        MY_LOGGER.debug(f"Выполняем запрос | url: {url!r} | payload: {payload!r} | headers: {headers!r}")
-        response = requests.post(url, data=payload, headers=headers)
-        short_lnk = response.json().get('data').get('shorturl')
+        data = {
+            "url": link_to_short,
+        }
+        response = requests.post(url=req_url, json=data, headers=headers)
+        if response.status_code != 200:
+            MY_LOGGER.error(f"Не удалось сократить ссылку через {service_name}. Неудачный запрос status_code=={response.status_code} | response_json == {response.json()}")
+            return False   
+        short_lnk = response.json().get("shorturl")
 
     elif service_name == "rebrandly.com":
         url = "https://api.rebrandly.com/v1/links"
