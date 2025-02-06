@@ -7,7 +7,7 @@ class RedirectBotSettings(models.Model):
     """
 
     key = models.CharField(verbose_name="Ключ", max_length=230)
-    value = models.TextField(verbose_name="Значение", max_length=500)
+    value = models.TextField(verbose_name="Значение", max_length=5000)
 
     class Meta:
         ordering = ["-id"]
