@@ -6,8 +6,12 @@ import requests
 from celery import shared_task
 from loguru import logger
 
+from datetime import timedelta, datetime
+from django.utils.timezone import now
+
 from redirect_admin.models import LinkSet, Links, RedirectBotSettings, Transaction, TlgUser
 from redirect_admin.services import RedirectBotSettingsService, UserDomainService
+from redirect_admin.saga import DeleteOldLinksSaga
 from redirect_bot_admin.settings import MY_LOGGER
 
 
@@ -443,3 +447,26 @@ def send_transactions(tlg_id):
                    f'Удаляю файл с диска.')
     os.remove(path=file_path)  # Удаляем файл с диска
     return True
+
+
+@shared_task
+def delete_old_links():
+    """
+    Функция для удаления устаревших ссылок из БД и связанные со ссылками компании Keitaro.
+    """
+    logger.info(f"Запуск задачки по удалению старых ссылок")
+
+
+    # Определяем дату, которая является границей и достаем все устаревшие записи
+    links_ttl = RedirectBotSettingsService.read(key="links_ttl_days")
+    date_threshold = now() - timedelta(days=int(links_ttl))
+    link_set_qset = LinkSet.objects.filter(created_at__lt=date_threshold)
+
+    for link_set_obj in link_set_qset:
+        saga = DeleteOldLinksSaga(link_set_obj)
+        is_success = saga.delete_old_link()
+        if not is_success:
+            logger.warning(f"Не удалось удаление устаревших ссылок! Неудачное удаление набора ссылок: {link_set_obj}")
+            return
+    
+    logger.success(f"Успешное выподнение задачки по удалению старых ссылок")

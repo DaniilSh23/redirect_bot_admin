@@ -71,3 +71,14 @@ class KeitaroAgent:
         MY_LOGGER.success(f"Успешный запрос к API Keitaro для удаления домена")
         return True
     
+    def delete_company(self, company_id) -> bool:
+        """
+        Удаление компании из keitaro.
+        """
+        req_url = f"{self.keitaro_api_address}campaigns/{company_id}"
+        response = requests.delete(url=req_url, headers=self.headers)
+        if response.status_code != 200:
+            MY_LOGGER.warning(f"Неудачный запрос к API Keitaro для удаления компании | {response.status_code} | {response.json()}")
+            return False
+        MY_LOGGER.success(f"Успешный запрос к API Keitaro для удаления компании")
+        return True

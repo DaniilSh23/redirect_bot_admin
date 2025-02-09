@@ -193,6 +193,12 @@ REDIS_PORT = env('REDIS_PORT')
 CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}"  # Это адрес брокера сообщений (у нас Redis)
 CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}"  # Это адрес бэкэнда результатов (тоже у нас Redis)
 CELERY_TIMEZONE = "Europe/Moscow"
+CELERY_BEAT_SCHEDULE = {  # Настройки шедуля
+    "delete_old_links": {
+        "task": "redirect_admin.tasks.delete_old_links",
+        "schedule": 10,  # Каждые N сек
+    },
+}
 
 # Настройки логгера
 MY_LOGGER = loguru.logger

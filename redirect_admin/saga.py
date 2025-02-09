@@ -6,6 +6,7 @@
 from redirect_admin.services import RedirectBotSettingsService, UserDomainService
 from redirect_admin.claudflare import ClaudFlareAgent
 from redirect_admin.keitaro import KeitaroAgent
+from redirect_admin.models import LinkSet, Links
 from redirect_bot_admin.settings import MY_LOGGER
 
 
@@ -122,4 +123,38 @@ class DeleteUserDomainSaga:
         
         # Удаление из БД
         UserDomainService.delete(record=user_domain)
+        return True
+    
+
+class DeleteOldLinksSaga:
+    """
+    Сага для удаления устаревших ссылок.
+    """
+    err_msg = "Ошибка при выполнении саги удаления устаревших ссылок"
+    
+    def __init__(self, link_set_obj: LinkSet):
+        """
+        Конструктор для класса саги.
+        """
+        self.link_set_obj = link_set_obj
+
+    def delete_old_link(self) -> bool:
+        """
+        Удаление ссылки, набора 
+        """
+
+        # Достаем все ссылки из заданного набора (link_set_obj)
+        links = Links.objects.filter(link_set=self.link_set_obj)
+
+        # Удаление компаний из кейтаро для каждой ссылки
+        keitaro_agent = KeitaroAgent()
+        for i_link in links:
+            res = keitaro_agent.delete_company(company_id=i_link.company_id)     # Удаление компании в архив keitaro
+            if not res:
+                MY_LOGGER.warning(self.err_msg)
+                return False
+        
+        # Удаление набора ссылок, также каскадно удалятся и сами записи ссылок из набора
+        MY_LOGGER.debug(f"Удаление набора ссылок в саге: {self.link_set_obj}")
+        self.link_set_obj.delete()
         return True
