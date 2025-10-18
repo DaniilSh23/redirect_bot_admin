@@ -85,6 +85,17 @@ class TlgUserService:
             MY_LOGGER.warning(f"Не найден юзер с tlg_id == {tlg_id}")
             return None
 
+    @staticmethod
+    def get_interface_lang_code(tlg_id):
+        """
+        Получение языка интерфейса по tlg_id
+        """
+        try:
+            tlg_user = TlgUser.objects.get(tlg_id=tlg_id)
+        except ObjectDoesNotExist:
+            MY_LOGGER.warning(f"Не найден юзер с tlg_id == {tlg_id}")
+            return None
+        return tlg_user.interface_language.language_code
 
 class TransferUserService:
     """

@@ -38,7 +38,7 @@ from redirect_admin.serializers import (
 )
 from redirect_admin.forms import BaseTlgIdForm, UserDomainForm, UserTransferForm
 from redirect_admin.saga import AddUserDomainSaga, DeleteUserDomainSaga
-from redirect_admin.services import RedirectBotSettingsService, UserDomainService, TransferUserService
+from redirect_admin.services import RedirectBotSettingsService, UserDomainService, TransferUserService, TlgUserService
 from redirect_bot_admin.settings import MY_LOGGER, BOT_TOKEN
 
 
@@ -743,7 +743,8 @@ class UserDomainView(View):
 
         # Достаем данные, необходимые для отображения на странице
         domain_records = UserDomainService.read_all_for_user(tlg_id=tlg_id)
-        create_domain_instruction = RedirectBotSettingsService.read(key="create_domain_instruction")
+        lang_code = TlgUserService.get_interface_lang_code(tlg_id=tlg_id)
+        create_domain_instruction = RedirectBotSettingsService.read(key=f"create_domain_instruction_{lang_code}")
 
         # Даем ответ на запрос
         context = {

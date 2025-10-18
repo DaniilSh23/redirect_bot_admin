@@ -196,7 +196,7 @@ CELERY_TIMEZONE = "Europe/Moscow"
 CELERY_BEAT_SCHEDULE = {  # Настройки шедуля
     "delete_old_links": {
         "task": "redirect_admin.tasks.delete_old_links",
-        "schedule": 10,  # Каждые N сек
+        "schedule": 60 * 60 * 24,  # Каждые N сек
     },
 }
 
