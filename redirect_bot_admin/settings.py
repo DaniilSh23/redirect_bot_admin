@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import sys
 from pathlib import Path
-
+from celery.schedules import crontab
 import loguru
 import environ
 
@@ -196,7 +196,7 @@ CELERY_TIMEZONE = "Europe/Moscow"
 CELERY_BEAT_SCHEDULE = {  # Настройки шедуля
     "delete_old_links": {
         "task": "redirect_admin.tasks.delete_old_links",
-        "schedule": 60 * 60 * 24,  # Каждые N сек
+        "schedule": crontab(hour=15, minute=0),  # В заданное время каждые сутки
     },
 }
 
