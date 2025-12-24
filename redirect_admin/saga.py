@@ -149,7 +149,14 @@ class DeleteOldLinksSaga:
         # Удаление компаний из кейтаро для каждой ссылки
         keitaro_agent = KeitaroAgent()
         for i_link in links:
-            res = keitaro_agent.delete_company(company_id=i_link.company_id)     # Удаление компании в архив keitaro
+            
+            # Обработка кейса, когда у ссылки не указан ID компании кейтаро
+            if not i_link.company_id:
+                MY_LOGGER.debug(f"ID компании KEITARO: {i_link.company_id}. Пропускаем запрос к KEITARO...")
+                continue
+
+            # Удаление компании в архив keitaro
+            res = keitaro_agent.delete_company(company_id=i_link.company_id)
             if not res:
                 MY_LOGGER.warning(self.err_msg)
                 return False
