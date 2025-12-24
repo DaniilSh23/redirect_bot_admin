@@ -196,7 +196,7 @@ CELERY_TIMEZONE = "Europe/Moscow"
 CELERY_BEAT_SCHEDULE = {  # Настройки шедуля
     "delete_old_links": {
         "task": "redirect_admin.tasks.delete_old_links",
-        "schedule": crontab(hour=15, minute=0),  # В заданное время каждые сутки
+        "schedule": crontab(hour=3, minute=0, day_of_week=7),  # В заданное время, в заданный день недели
     },
 }
 
